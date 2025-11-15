@@ -1,0 +1,16 @@
+# Visual Studio
+.vs/
+*.user
+*.suo
+
+# Build files
+bin/
+obj/
+
+# WPF generated files
+*.g.cs
+*.g.i.cs
+
+# System files
+Thumbs.db
+*.cache

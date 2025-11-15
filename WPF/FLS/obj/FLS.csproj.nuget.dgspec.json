@@ -1,23 +1,23 @@
 {
   "format": 1,
   "restore": {
-    "D:\\Fast Nuces\\Semester-5\\Advance Programming\\FLS\\FLS\\FLS.csproj": {}
+    "D:\\Advance Programming\\FAST-LEARNING-SYSTEM\\FLS\\WPF\\FLS\\FLS.csproj": {}
   },
   "projects": {
-    "D:\\Fast Nuces\\Semester-5\\Advance Programming\\FLS\\FLS\\FLS.csproj": {
+    "D:\\Advance Programming\\FAST-LEARNING-SYSTEM\\FLS\\WPF\\FLS\\FLS.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\Fast Nuces\\Semester-5\\Advance Programming\\FLS\\FLS\\FLS.csproj",
+        "projectUniqueName": "D:\\Advance Programming\\FAST-LEARNING-SYSTEM\\FLS\\WPF\\FLS\\FLS.csproj",
         "projectName": "FLS",
-        "projectPath": "D:\\Fast Nuces\\Semester-5\\Advance Programming\\FLS\\FLS\\FLS.csproj",
-        "packagesPath": "C:\\Users\\ammar\\.nuget\\packages\\",
-        "outputPath": "D:\\Fast Nuces\\Semester-5\\Advance Programming\\FLS\\FLS\\obj\\",
+        "projectPath": "D:\\Advance Programming\\FAST-LEARNING-SYSTEM\\FLS\\WPF\\FLS\\FLS.csproj",
+        "packagesPath": "C:\\Users\\zohap\\.nuget\\packages\\",
+        "outputPath": "D:\\Advance Programming\\FAST-LEARNING-SYSTEM\\FLS\\WPF\\FLS\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
         "configFilePaths": [
-          "C:\\Users\\ammar\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\zohap\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
