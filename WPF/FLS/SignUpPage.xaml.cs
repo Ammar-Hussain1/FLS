@@ -31,12 +31,12 @@ namespace FLS
             "Account Created",
             MessageBoxButton.OK,
             MessageBoxImage.Information
-        );
+            );
 
             this.Close();
         }
 
-        private void AlreadyAccounrButton_Click(object sender, RoutedEventArgs e)
+        private void AlreadyAccountButton_Click(object sender, RoutedEventArgs e)
         {
             this.Close();
         }

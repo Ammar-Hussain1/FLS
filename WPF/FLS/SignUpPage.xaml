@@ -129,7 +129,7 @@
                         Margin="0,0,0,18" Click="CreateAccountButton_Click"/>
 
                 <Button Content="Already have an account? Sign in"
-                        Name="AlreadyAccounrButton"
+                        Name="AlreadyAccountButton"
                         FontSize="20"
                         FontWeight="SemiBold"
                         Background="Transparent"
@@ -138,7 +138,7 @@
                         BorderThickness="2"
                         Padding="10"
                         Height="55"
-                        HorizontalAlignment="Stretch" Click="AlreadyAccounrButton_Click"/>
+                        HorizontalAlignment="Stretch" Click="AlreadyAccountButton_Click"/>
             </StackPanel>
         </Border>
     </Grid>
