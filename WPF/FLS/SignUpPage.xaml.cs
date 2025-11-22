@@ -33,6 +33,8 @@ namespace FLS
             MessageBoxImage.Information
             );
 
+            Dashboard dashboard = new Dashboard();
+            dashboard.Show();
             this.Close();
         }
 

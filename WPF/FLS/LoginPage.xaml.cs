@@ -19,6 +19,13 @@ namespace WpfLoginApp
             signUpPage.Show();
         }
 
+        private void LoginButton_Click(object sender, RoutedEventArgs e) 
+        {
+            Dashboard dashboard = new Dashboard();
+            dashboard.Show();
+            this.Close();
+        }
+
         private void Login_Click(object sender, RoutedEventArgs e) { }
 
        
