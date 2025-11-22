@@ -1,0 +1,36 @@
+C:\Work\FAST\Advanced Programming\ProjectFLS\API\FLS API\FLS API\bin\Debug\net8.0\appsettings.Development.json
+C:\Work\FAST\Advanced Programming\ProjectFLS\API\FLS API\FLS API\bin\Debug\net8.0\appsettings.json
+C:\Work\FAST\Advanced Programming\ProjectFLS\API\FLS API\FLS API\bin\Debug\net8.0\FLS API.staticwebassets.endpoints.json
+C:\Work\FAST\Advanced Programming\ProjectFLS\API\FLS API\FLS API\bin\Debug\net8.0\FLS API.exe
+C:\Work\FAST\Advanced Programming\ProjectFLS\API\FLS API\FLS API\bin\Debug\net8.0\FLS API.deps.json
+C:\Work\FAST\Advanced Programming\ProjectFLS\API\FLS API\FLS API\bin\Debug\net8.0\FLS API.runtimeconfig.json
+C:\Work\FAST\Advanced Programming\ProjectFLS\API\FLS API\FLS API\bin\Debug\net8.0\FLS API.dll
+C:\Work\FAST\Advanced Programming\ProjectFLS\API\FLS API\FLS API\bin\Debug\net8.0\FLS API.pdb
+C:\Work\FAST\Advanced Programming\ProjectFLS\API\FLS API\FLS API\bin\Debug\net8.0\Microsoft.OpenApi.dll
+C:\Work\FAST\Advanced Programming\ProjectFLS\API\FLS API\FLS API\bin\Debug\net8.0\Swashbuckle.AspNetCore.Swagger.dll
+C:\Work\FAST\Advanced Programming\ProjectFLS\API\FLS API\FLS API\bin\Debug\net8.0\Swashbuckle.AspNetCore.SwaggerGen.dll
+C:\Work\FAST\Advanced Programming\ProjectFLS\API\FLS API\FLS API\bin\Debug\net8.0\Swashbuckle.AspNetCore.SwaggerUI.dll
+C:\Work\FAST\Advanced Programming\ProjectFLS\API\FLS API\FLS API\obj\Debug\net8.0\FLS API.csproj.AssemblyReference.cache
+C:\Work\FAST\Advanced Programming\ProjectFLS\API\FLS API\FLS API\obj\Debug\net8.0\rpswa.dswa.cache.json
+C:\Work\FAST\Advanced Programming\ProjectFLS\API\FLS API\FLS API\obj\Debug\net8.0\FLS API.GeneratedMSBuildEditorConfig.editorconfig
+C:\Work\FAST\Advanced Programming\ProjectFLS\API\FLS API\FLS API\obj\Debug\net8.0\FLS API.AssemblyInfoInputs.cache
+C:\Work\FAST\Advanced Programming\ProjectFLS\API\FLS API\FLS API\obj\Debug\net8.0\FLS API.AssemblyInfo.cs
+C:\Work\FAST\Advanced Programming\ProjectFLS\API\FLS API\FLS API\obj\Debug\net8.0\FLS API.csproj.CoreCompileInputs.cache
+C:\Work\FAST\Advanced Programming\ProjectFLS\API\FLS API\FLS API\obj\Debug\net8.0\FLS API.MvcApplicationPartsAssemblyInfo.cs
+C:\Work\FAST\Advanced Programming\ProjectFLS\API\FLS API\FLS API\obj\Debug\net8.0\FLS API.MvcApplicationPartsAssemblyInfo.cache
+C:\Work\FAST\Advanced Programming\ProjectFLS\API\FLS API\FLS API\obj\Debug\net8.0\FLS API.sourcelink.json
+C:\Work\FAST\Advanced Programming\ProjectFLS\API\FLS API\FLS API\obj\Debug\net8.0\rjimswa.dswa.cache.json
+C:\Work\FAST\Advanced Programming\ProjectFLS\API\FLS API\FLS API\obj\Debug\net8.0\rjsmrazor.dswa.cache.json
+C:\Work\FAST\Advanced Programming\ProjectFLS\API\FLS API\FLS API\obj\Debug\net8.0\rjsmcshtml.dswa.cache.json
+C:\Work\FAST\Advanced Programming\ProjectFLS\API\FLS API\FLS API\obj\Debug\net8.0\scopedcss\bundle\FLS API.styles.css
+C:\Work\FAST\Advanced Programming\ProjectFLS\API\FLS API\FLS API\obj\Debug\net8.0\staticwebassets.build.json
+C:\Work\FAST\Advanced Programming\ProjectFLS\API\FLS API\FLS API\obj\Debug\net8.0\staticwebassets.build.json.cache
+C:\Work\FAST\Advanced Programming\ProjectFLS\API\FLS API\FLS API\obj\Debug\net8.0\staticwebassets.development.json
+C:\Work\FAST\Advanced Programming\ProjectFLS\API\FLS API\FLS API\obj\Debug\net8.0\staticwebassets.build.endpoints.json
+C:\Work\FAST\Advanced Programming\ProjectFLS\API\FLS API\FLS API\obj\Debug\net8.0\staticwebassets.upToDateCheck.txt
+C:\Work\FAST\Advanced Programming\ProjectFLS\API\FLS API\FLS API\obj\Debug\net8.0\FLS API.csproj.Up2Date
+C:\Work\FAST\Advanced Programming\ProjectFLS\API\FLS API\FLS API\obj\Debug\net8.0\FLS API.dll
+C:\Work\FAST\Advanced Programming\ProjectFLS\API\FLS API\FLS API\obj\Debug\net8.0\refint\FLS API.dll
+C:\Work\FAST\Advanced Programming\ProjectFLS\API\FLS API\FLS API\obj\Debug\net8.0\FLS API.pdb
+C:\Work\FAST\Advanced Programming\ProjectFLS\API\FLS API\FLS API\obj\Debug\net8.0\FLS API.genruntimeconfig.cache
+C:\Work\FAST\Advanced Programming\ProjectFLS\API\FLS API\FLS API\obj\Debug\net8.0\ref\FLS API.dll
