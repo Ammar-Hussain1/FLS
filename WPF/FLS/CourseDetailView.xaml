@@ -1,0 +1,445 @@
+<UserControl x:Class="FLS.CourseDetailView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <UserControl.Resources>
+        <SolidColorBrush x:Key="Primary" Color="#2B2D42"/>
+        <SolidColorBrush x:Key="Surface" Color="#FFEDDF"/>
+        <SolidColorBrush x:Key="Accent" Color="#4281A4"/>
+        <SolidColorBrush x:Key="Success" Color="#48A9A6"/>
+    </UserControl.Resources>
+
+    <Grid Background="{StaticResource Surface}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header with Back Button -->
+        <Border Grid.Row="0" 
+                Background="{StaticResource Accent}" 
+                Padding="20">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Button Name="BackButton"
+                        Content="← Back"
+                        FontSize="16"
+                        FontWeight="SemiBold"
+                        Background="Transparent"
+                        Foreground="{StaticResource Surface}"
+                        BorderBrush="{StaticResource Surface}"
+                        BorderThickness="2"
+                        Padding="15,8"
+                        Cursor="Hand"
+                        Click="BackButton_Click"
+                        Margin="0,0,20,0"/>
+                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                    <TextBlock Name="CourseNameText"
+                               FontSize="28" 
+                               FontWeight="Bold" 
+                               Foreground="{StaticResource Surface}"/>
+                    <TextBlock Name="CourseCodeText"
+                               FontSize="18" 
+                               Foreground="{StaticResource Surface}"
+                               Margin="0,5,0,0"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Main Content -->
+        <ScrollViewer Grid.Row="1" 
+                      VerticalScrollBarVisibility="Auto"
+                      Padding="30">
+            <StackPanel>
+                <!-- Course Info -->
+                <Border Background="White"
+                        CornerRadius="12"
+                        Padding="25"
+                        Margin="0,0,0,25"
+                        BorderBrush="{StaticResource Accent}"
+                        BorderThickness="1">
+                    <StackPanel>
+                        <TextBlock Text="Course Information"
+                                   FontSize="22"
+                                   FontWeight="Bold"
+                                   Foreground="{StaticResource Primary}"
+                                   Margin="0,0,0,15"/>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock FontSize="14"
+                                       Foreground="{StaticResource Primary}"
+                                       Margin="0,0,20,0">
+                                <Run Text="Instructor: " FontWeight="SemiBold"/>
+                                <Run Name="InstructorText"/>
+                            </TextBlock>
+                            <TextBlock FontSize="14"
+                                       Foreground="{StaticResource Primary}">
+                                <Run Text="Credits: " FontWeight="SemiBold"/>
+                                <Run Name="CreditsText"/>
+                            </TextBlock>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- Quizzes Section -->
+                <TextBlock Text="📝 Quizzes"
+                           FontSize="24"
+                           FontWeight="Bold"
+                           Foreground="{StaticResource Primary}"
+                           Margin="0,0,0,15"/>
+                <ItemsControl Name="QuizzesItemsControl" Margin="0,0,0,30">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Background="White"
+                                    CornerRadius="10"
+                                    Padding="20"
+                                    Margin="0,0,0,15"
+                                    BorderBrush="{StaticResource Accent}"
+                                    BorderThickness="1">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+                                    <StackPanel Grid.Column="0" Grid.Row="0">
+                                        <TextBlock Text="{Binding Title}"
+                                                   FontSize="18"
+                                                   FontWeight="Bold"
+                                                   Foreground="{StaticResource Primary}"
+                                                   Margin="0,0,0,5"/>
+                                        <TextBlock FontSize="14"
+                                                   Foreground="{StaticResource Accent}">
+                                            <Run Text="Semester: " FontWeight="SemiBold"/>
+                                            <Run Text="{Binding Semester}"/>
+                                        </TextBlock>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="1" Grid.Row="0" Orientation="Horizontal">
+                                        <Button Content="📄 Preview"
+                                                FontSize="14"
+                                                Background="{StaticResource Accent}"
+                                                Foreground="{StaticResource Surface}"
+                                                Padding="15,8"
+                                                BorderThickness="0"
+                                                Cursor="Hand"
+                                                Margin="0,0,10,0"
+                                                Tag="{Binding PreviewLink}"
+                                                Click="PreviewButton_Click"/>
+                                        <Button Content="⬇ Download"
+                                                FontSize="14"
+                                                Background="{StaticResource Success}"
+                                                Foreground="White"
+                                                Padding="15,8"
+                                                BorderThickness="0"
+                                                Cursor="Hand"
+                                                Tag="{Binding DownloadLink}"
+                                                Click="DownloadButton_Click"/>
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <!-- Assignments Section -->
+                <TextBlock Text="📋 Assignments"
+                           FontSize="24"
+                           FontWeight="Bold"
+                           Foreground="{StaticResource Primary}"
+                           Margin="0,0,0,15"/>
+                <ItemsControl Name="AssignmentsItemsControl" Margin="0,0,0,30">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Background="White"
+                                    CornerRadius="10"
+                                    Padding="20"
+                                    Margin="0,0,0,15"
+                                    BorderBrush="{StaticResource Accent}"
+                                    BorderThickness="1">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+                                    <StackPanel Grid.Column="0" Grid.Row="0">
+                                        <TextBlock Text="{Binding Title}"
+                                                   FontSize="18"
+                                                   FontWeight="Bold"
+                                                   Foreground="{StaticResource Primary}"
+                                                   Margin="0,0,0,5"/>
+                                        <TextBlock FontSize="14"
+                                                   Foreground="{StaticResource Accent}">
+                                            <Run Text="Semester: " FontWeight="SemiBold"/>
+                                            <Run Text="{Binding Semester}"/>
+                                        </TextBlock>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="1" Grid.Row="0" Orientation="Horizontal">
+                                        <Button Content="📄 Preview"
+                                                FontSize="14"
+                                                Background="{StaticResource Accent}"
+                                                Foreground="{StaticResource Surface}"
+                                                Padding="15,8"
+                                                BorderThickness="0"
+                                                Cursor="Hand"
+                                                Margin="0,0,10,0"
+                                                Tag="{Binding PreviewLink}"
+                                                Click="PreviewButton_Click"/>
+                                        <Button Content="⬇ Download"
+                                                FontSize="14"
+                                                Background="{StaticResource Success}"
+                                                Foreground="White"
+                                                Padding="15,8"
+                                                BorderThickness="0"
+                                                Cursor="Hand"
+                                                Tag="{Binding DownloadLink}"
+                                                Click="DownloadButton_Click"/>
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <!-- Exams Section -->
+                <TextBlock Text="📊 Exams"
+                           FontSize="24"
+                           FontWeight="Bold"
+                           Foreground="{StaticResource Primary}"
+                           Margin="0,0,0,15"/>
+                
+                <!-- Mid 1 -->
+                <TextBlock Text="Mid Term 1"
+                           FontSize="20"
+                           FontWeight="SemiBold"
+                           Foreground="{StaticResource Accent}"
+                           Margin="0,0,0,10"/>
+                <ItemsControl Name="Mid1ItemsControl" Margin="0,0,0,20">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Background="White"
+                                    CornerRadius="10"
+                                    Padding="20"
+                                    Margin="0,0,0,15"
+                                    BorderBrush="{StaticResource Accent}"
+                                    BorderThickness="1">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0">
+                                        <TextBlock Text="{Binding Title}"
+                                                   FontSize="18"
+                                                   FontWeight="Bold"
+                                                   Foreground="{StaticResource Primary}"
+                                                   Margin="0,0,0,5"/>
+                                        <TextBlock FontSize="14"
+                                                   Foreground="{StaticResource Accent}">
+                                            <Run Text="Semester: " FontWeight="SemiBold"/>
+                                            <Run Text="{Binding Semester}"/>
+                                        </TextBlock>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                        <Button Content="📄 Preview"
+                                                FontSize="14"
+                                                Background="{StaticResource Accent}"
+                                                Foreground="{StaticResource Surface}"
+                                                Padding="15,8"
+                                                BorderThickness="0"
+                                                Cursor="Hand"
+                                                Margin="0,0,10,0"
+                                                Tag="{Binding PreviewLink}"
+                                                Click="PreviewButton_Click"/>
+                                        <Button Content="⬇ Download"
+                                                FontSize="14"
+                                                Background="{StaticResource Success}"
+                                                Foreground="White"
+                                                Padding="15,8"
+                                                BorderThickness="0"
+                                                Cursor="Hand"
+                                                Tag="{Binding DownloadLink}"
+                                                Click="DownloadButton_Click"/>
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <!-- Mid 2 -->
+                <TextBlock Text="Mid Term 2"
+                           FontSize="20"
+                           FontWeight="SemiBold"
+                           Foreground="{StaticResource Accent}"
+                           Margin="0,0,0,10"/>
+                <ItemsControl Name="Mid2ItemsControl" Margin="0,0,0,20">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Background="White"
+                                    CornerRadius="10"
+                                    Padding="20"
+                                    Margin="0,0,0,15"
+                                    BorderBrush="{StaticResource Accent}"
+                                    BorderThickness="1">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0">
+                                        <TextBlock Text="{Binding Title}"
+                                                   FontSize="18"
+                                                   FontWeight="Bold"
+                                                   Foreground="{StaticResource Primary}"
+                                                   Margin="0,0,0,5"/>
+                                        <TextBlock FontSize="14"
+                                                   Foreground="{StaticResource Accent}">
+                                            <Run Text="Semester: " FontWeight="SemiBold"/>
+                                            <Run Text="{Binding Semester}"/>
+                                        </TextBlock>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                        <Button Content="📄 Preview"
+                                                FontSize="14"
+                                                Background="{StaticResource Accent}"
+                                                Foreground="{StaticResource Surface}"
+                                                Padding="15,8"
+                                                BorderThickness="0"
+                                                Cursor="Hand"
+                                                Margin="0,0,10,0"
+                                                Tag="{Binding PreviewLink}"
+                                                Click="PreviewButton_Click"/>
+                                        <Button Content="⬇ Download"
+                                                FontSize="14"
+                                                Background="{StaticResource Success}"
+                                                Foreground="White"
+                                                Padding="15,8"
+                                                BorderThickness="0"
+                                                Cursor="Hand"
+                                                Tag="{Binding DownloadLink}"
+                                                Click="DownloadButton_Click"/>
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <!-- Final Exam -->
+                <TextBlock Text="Final Exam"
+                           FontSize="20"
+                           FontWeight="SemiBold"
+                           Foreground="{StaticResource Accent}"
+                           Margin="0,0,0,10"/>
+                <ItemsControl Name="FinalExamItemsControl" Margin="0,0,0,30">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Background="White"
+                                    CornerRadius="10"
+                                    Padding="20"
+                                    Margin="0,0,0,15"
+                                    BorderBrush="{StaticResource Accent}"
+                                    BorderThickness="1">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0">
+                                        <TextBlock Text="{Binding Title}"
+                                                   FontSize="18"
+                                                   FontWeight="Bold"
+                                                   Foreground="{StaticResource Primary}"
+                                                   Margin="0,0,0,5"/>
+                                        <TextBlock FontSize="14"
+                                                   Foreground="{StaticResource Accent}">
+                                            <Run Text="Semester: " FontWeight="SemiBold"/>
+                                            <Run Text="{Binding Semester}"/>
+                                        </TextBlock>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                        <Button Content="📄 Preview"
+                                                FontSize="14"
+                                                Background="{StaticResource Accent}"
+                                                Foreground="{StaticResource Surface}"
+                                                Padding="15,8"
+                                                BorderThickness="0"
+                                                Cursor="Hand"
+                                                Margin="0,0,10,0"
+                                                Tag="{Binding PreviewLink}"
+                                                Click="PreviewButton_Click"/>
+                                        <Button Content="⬇ Download"
+                                                FontSize="14"
+                                                Background="{StaticResource Success}"
+                                                Foreground="White"
+                                                Padding="15,8"
+                                                BorderThickness="0"
+                                                Cursor="Hand"
+                                                Tag="{Binding DownloadLink}"
+                                                Click="DownloadButton_Click"/>
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <!-- Playlists Section -->
+                <TextBlock Text="🎵 Playlists"
+                           FontSize="24"
+                           FontWeight="Bold"
+                           Foreground="{StaticResource Primary}"
+                           Margin="0,0,0,15"/>
+                <ItemsControl Name="PlaylistsItemsControl">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Background="White"
+                                    CornerRadius="10"
+                                    Padding="20"
+                                    Margin="0,0,0,15"
+                                    BorderBrush="{StaticResource Accent}"
+                                    BorderThickness="1">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0">
+                                        <TextBlock Text="{Binding Title}"
+                                                   FontSize="18"
+                                                   FontWeight="Bold"
+                                                   Foreground="{StaticResource Primary}"
+                                                   Margin="0,0,0,5"/>
+                                        <TextBlock Text="{Binding Description}"
+                                                   FontSize="14"
+                                                   Foreground="{StaticResource Primary}"
+                                                   TextWrapping="Wrap"/>
+                                    </StackPanel>
+                                    <Button Grid.Column="1"
+                                            Content="▶ Open Playlist"
+                                            FontSize="14"
+                                            Background="{StaticResource Accent}"
+                                            Foreground="{StaticResource Surface}"
+                                            Padding="15,8"
+                                            BorderThickness="0"
+                                            Cursor="Hand"
+                                            Tag="{Binding Link}"
+                                            Click="OpenPlaylistButton_Click"/>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>
+

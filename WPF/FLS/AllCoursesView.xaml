@@ -1,0 +1,341 @@
+<UserControl x:Class="FLS.AllCoursesView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <UserControl.Resources>
+        <SolidColorBrush x:Key="Primary" Color="#2B2D42"/>
+        <SolidColorBrush x:Key="Surface" Color="#FFEDDF"/>
+        <SolidColorBrush x:Key="Accent" Color="#4281A4"/>
+        <SolidColorBrush x:Key="Success" Color="#48A9A6"/>
+        <SolidColorBrush x:Key="Danger" Color="#E63946"/>
+    </UserControl.Resources>
+
+    <Grid Background="{StaticResource Surface}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <Border Grid.Row="0" 
+                Background="{StaticResource Accent}" 
+                Padding="30,20">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="All Courses" 
+                           FontSize="32" 
+                           FontWeight="Bold" 
+                           Foreground="{StaticResource Surface}"
+                           VerticalAlignment="Center"/>
+                <Button Name="AddCourseButton"
+                        Grid.Column="1"
+                        Content="+ Add Course"
+                        FontSize="18"
+                        FontWeight="SemiBold"
+                        Background="{StaticResource Success}"
+                        Foreground="{StaticResource Surface}"
+                        Padding="20,10"
+                        BorderThickness="0"
+                        Cursor="Hand"
+                        Click="AddCourseButton_Click"/>
+            </Grid>
+        </Border>
+
+        <!-- Main Content -->
+        <ScrollViewer Grid.Row="1" 
+                      VerticalScrollBarVisibility="Auto"
+                      Padding="30">
+            <StackPanel>
+                <!-- Search Bar -->
+                <Border Background="White"
+                        CornerRadius="10"
+                        Padding="15"
+                        Margin="0,0,0,20"
+                        BorderBrush="{StaticResource Accent}"
+                        BorderThickness="2">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="🔍"
+                                   FontSize="20"
+                                   VerticalAlignment="Center"
+                                   Margin="0,0,10,0"/>
+                        <TextBox Name="SearchTextBox"
+                                 Grid.Column="1"
+                                 FontSize="18"
+                                 Background="Transparent"
+                                 BorderThickness="0"
+                                 Padding="5"
+                                 VerticalContentAlignment="Center"
+                                 TextChanged="SearchTextBox_TextChanged">
+                            <TextBox.Style>
+                                <Style TargetType="TextBox">
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate TargetType="TextBox">
+                                                <Border Background="{TemplateBinding Background}">
+                                                    <ScrollViewer x:Name="PART_ContentHost" Margin="0"/>
+                                                </Border>
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Style>
+                            </TextBox.Style>
+                        </TextBox>
+                        <Button Name="ClearSearchButton"
+                                Grid.Column="2"
+                                Content="×"
+                                FontSize="18"
+                                FontWeight="Bold"
+                                Background="Transparent"
+                                Foreground="{StaticResource Primary}"
+                                BorderThickness="0"
+                                Width="30"
+                                Height="30"
+                                Padding="0"
+                                Cursor="Hand"
+                                Visibility="Collapsed"
+                                Click="ClearSearchButton_Click"
+                                ToolTip="Clear search"/>
+                    </Grid>
+                </Border>
+
+                <!-- Add Course Form (Collapsible) -->
+                <Border Name="AddCourseForm"
+                        Background="White"
+                        CornerRadius="15"
+                        Padding="30"
+                        Margin="0,0,0,30"
+                        BorderBrush="{StaticResource Accent}"
+                        BorderThickness="2"
+                        Visibility="Collapsed">
+                    <StackPanel>
+                        <TextBlock Text="Add New Course"
+                                   FontSize="28"
+                                   FontWeight="SemiBold"
+                                   Foreground="{StaticResource Primary}"
+                                   Margin="0,0,0,20"/>
+
+                        <TextBlock Text="Course Name"
+                                   Foreground="{StaticResource Primary}"
+                                   FontSize="18"
+                                   Margin="0,0,0,8"/>
+                        <TextBox Name="CourseNameTextBox"
+                                 FontSize="18"
+                                 Background="White"
+                                 BorderBrush="{StaticResource Accent}"
+                                 BorderThickness="2"
+                                 Padding="12"
+                                 Margin="0,0,0,16"/>
+
+                        <TextBlock Text="Course Code"
+                                   Foreground="{StaticResource Primary}"
+                                   FontSize="18"
+                                   Margin="0,0,0,8"/>
+                        <TextBox Name="CourseCodeTextBox"
+                                 FontSize="18"
+                                 Background="White"
+                                 BorderBrush="{StaticResource Accent}"
+                                 BorderThickness="2"
+                                 Padding="12"
+                                 Margin="0,0,0,16"/>
+
+                        <TextBlock Text="Description"
+                                   Foreground="{StaticResource Primary}"
+                                   FontSize="18"
+                                   Margin="0,0,0,8"/>
+                        <TextBox Name="CourseDescriptionTextBox"
+                                 FontSize="18"
+                                 Background="White"
+                                 BorderBrush="{StaticResource Accent}"
+                                 BorderThickness="2"
+                                 Padding="12"
+                                 MinHeight="80"
+                                 TextWrapping="Wrap"
+                                 AcceptsReturn="True"
+                                 VerticalScrollBarVisibility="Auto"
+                                 Margin="0,0,0,16"/>
+
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            
+                            <StackPanel Grid.Column="0" Margin="0,0,10,0">
+                                <TextBlock Text="Credits"
+                                           Foreground="{StaticResource Primary}"
+                                           FontSize="18"
+                                           Margin="0,0,0,8"/>
+                                <TextBox Name="CourseCreditsTextBox"
+                                         FontSize="18"
+                                         Background="White"
+                                         BorderBrush="{StaticResource Accent}"
+                                         BorderThickness="2"
+                                         Padding="12"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="1" Margin="10,0,0,0">
+                                <TextBlock Text="Instructor"
+                                           Foreground="{StaticResource Primary}"
+                                           FontSize="18"
+                                           Margin="0,0,0,8"/>
+                                <TextBox Name="CourseInstructorTextBox"
+                                         FontSize="18"
+                                         Background="White"
+                                         BorderBrush="{StaticResource Accent}"
+                                         BorderThickness="2"
+                                         Padding="12"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <StackPanel Orientation="Horizontal" 
+                                    HorizontalAlignment="Right"
+                                    Margin="0,20,0,0">
+                            <Button Content="Cancel"
+                                    Name="CancelButton"
+                                    FontSize="16"
+                                    FontWeight="SemiBold"
+                                    Background="Transparent"
+                                    Foreground="{StaticResource Primary}"
+                                    BorderBrush="{StaticResource Accent}"
+                                    BorderThickness="2"
+                                    Padding="20,10"
+                                    Margin="0,0,10,0"
+                                    Cursor="Hand"
+                                    Click="CancelButton_Click"/>
+                            <Button Content="Save Course"
+                                    Name="SaveCourseFormButton"
+                                    FontSize="16"
+                                    FontWeight="SemiBold"
+                                    Background="{StaticResource Accent}"
+                                    Foreground="{StaticResource Surface}"
+                                    BorderThickness="0"
+                                    Padding="20,10"
+                                    Cursor="Hand"
+                                    Click="SaveCourseFormButton_Click"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- Courses List -->
+                <ItemsControl Name="CoursesItemsControl">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Background="White"
+                                    CornerRadius="12"
+                                    Padding="25"
+                                    Margin="0,0,0,20"
+                                    BorderBrush="{StaticResource Accent}"
+                                    BorderThickness="1"
+                                    Cursor="Hand"
+                                    MouseLeftButtonDown="CourseCard_MouseLeftButtonDown"
+                                    Tag="{Binding}">
+                                <Border.Style>
+                                    <Style TargetType="Border">
+                                        <Setter Property="Background" Value="White"/>
+                                        <Style.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter Property="Background" Value="#F5F5F5"/>
+                                                <Setter Property="BorderBrush" Value="{StaticResource Accent}"/>
+                                                <Setter Property="BorderThickness" Value="2"/>
+                                            </Trigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Border.Style>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+
+                                    <StackPanel Grid.Column="0" Grid.Row="0">
+                                        <TextBlock Text="{Binding Name}"
+                                                   FontSize="24"
+                                                   FontWeight="Bold"
+                                                   Foreground="{StaticResource Primary}"
+                                                   Margin="0,0,0,5"/>
+                                        <TextBlock FontSize="18"
+                                                   Foreground="{StaticResource Accent}"
+                                                   Margin="0,0,0,10">
+                                            <Run Text="Code: " FontWeight="SemiBold"/>
+                                            <Run Text="{Binding Code}"/>
+                                        </TextBlock>
+                                    </StackPanel>
+
+                                    <Button Grid.Column="1" 
+                                            Grid.Row="0"
+                                            Content="⭐"
+                                            FontSize="20"
+                                            Background="Transparent"
+                                            Foreground="{StaticResource Accent}"
+                                            Width="40"
+                                            Height="40"
+                                            BorderThickness="0"
+                                            Cursor="Hand"
+                                            Padding="0"
+                                            Tag="{Binding Id}"
+                                            Click="SaveCourseButton_Click"
+                                            ToolTip="Save Course"/>
+
+                                    <TextBlock Grid.Column="0" 
+                                               Grid.Row="1"
+                                               Grid.ColumnSpan="2"
+                                               Text="{Binding Description}"
+                                               FontSize="16"
+                                               Foreground="{StaticResource Primary}"
+                                               TextWrapping="Wrap"
+                                               Margin="0,0,0,10"/>
+
+                                    <StackPanel Grid.Column="0" 
+                                                Grid.Row="2"
+                                                Grid.ColumnSpan="2"
+                                                Orientation="Horizontal">
+                                        <TextBlock FontSize="14"
+                                                   Foreground="{StaticResource Primary}"
+                                                   Margin="0,0,20,0">
+                                            <Run Text="Credits: " FontWeight="SemiBold"/>
+                                            <Run Text="{Binding Credits}"/>
+                                        </TextBlock>
+                                        <TextBlock FontSize="14"
+                                                   Foreground="{StaticResource Primary}"
+                                                   Margin="0,0,20,0">
+                                            <Run Text="Instructor: " FontWeight="SemiBold"/>
+                                            <Run Text="{Binding Instructor}"/>
+                                        </TextBlock>
+                                        <TextBlock FontSize="14"
+                                                   Foreground="{StaticResource Primary}">
+                                            <Run Text="Added: " FontWeight="SemiBold"/>
+                                            <Run Text="{Binding CreatedDate, StringFormat='{}{0:MMM dd, yyyy}'}"/>
+                                        </TextBlock>
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <!-- Empty State -->
+                <TextBlock Name="EmptyStateText"
+                           Text="No courses available. Click 'Add Course' to get started!"
+                           FontSize="20"
+                           Foreground="{StaticResource Primary}"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"
+                           Margin="0,50,0,0"
+                           Visibility="Collapsed"/>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>
+
