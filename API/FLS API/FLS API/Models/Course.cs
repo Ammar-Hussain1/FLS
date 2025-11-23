@@ -1,6 +1,4 @@
-using System;
-
-namespace FLS.Models
+namespace FLS_API.Models
 {
     public class Course
     {

@@ -12,6 +12,7 @@ namespace FLS
         private AllCoursesView _allCoursesView;
         private SavedCoursesView _savedCoursesView;
         private CourseDetailView _courseDetailView;
+        private CourseMaterialSubmissionView _courseMaterialSubmissionView;
         private UserControl _currentView;
         private UserControl _previousView;
 
@@ -43,7 +44,8 @@ namespace FLS
                 _courseDetailView = new CourseDetailView();
                 _courseDetailView.BackRequested += OnCourseDetailBackRequested;
             }
-            _courseDetailView.LoadCourse(course);
+            _courseDetailView.SetCourse(course);
+            _courseDetailView.LoadDummyData();
             ContentArea.Content = _courseDetailView;
             _currentView = _courseDetailView;
         }
@@ -63,6 +65,11 @@ namespace FLS
                 {
                     UpdateTabSelection(SavedCoursesTab);
                 }
+                else if (_previousView == _courseMaterialSubmissionView)
+                {
+                    UpdateTabSelection(CourseMaterialTab);
+                }
+              
             }
             else
             {
@@ -98,7 +105,7 @@ namespace FLS
             }
         }
 
-        private void OnSavedCoursesChanged(ObservableCollection<Course> savedCourses)
+        private void OnSavedCoursesChanged(ObservableCollection<UserCourse> savedCourses)
         {
             if (_savedCoursesView != null)
             {
@@ -114,6 +121,30 @@ namespace FLS
         private void SavedCoursesTab_Click(object sender, RoutedEventArgs e)
         {
             LoadSavedCoursesView();
+        }
+
+        private void CourseMaterialTab_Click(object sender, RoutedEventArgs e)
+        {
+            LoadCourseMaterialSubmissionView();
+        }
+
+        private void LoadCourseMaterialSubmissionView()
+        {
+            if (_courseMaterialSubmissionView == null)
+            {
+                _courseMaterialSubmissionView = new CourseMaterialSubmissionView();
+            }
+
+            // Sync courses from AllCoursesView if available
+            if (_allCoursesView != null)
+            {
+                var courses = _allCoursesView.GetCourses();
+                _courseMaterialSubmissionView.SetCourses(courses);
+            }
+
+            ContentArea.Content = _courseMaterialSubmissionView;
+            _currentView = _courseMaterialSubmissionView;
+            UpdateTabSelection(CourseMaterialTab);
         }
 
         private void MyProgressTab_Click(object sender, RoutedEventArgs e)
@@ -166,6 +197,7 @@ namespace FLS
         {
             AllCoursesTab.Background = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#2B2D42"));
             SavedCoursesTab.Background = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#2B2D42"));
+            CourseMaterialTab.Background = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#2B2D42"));
             MyProgressTab.Background = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#2B2D42"));
             SettingsTab.Background = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#2B2D42"));
 

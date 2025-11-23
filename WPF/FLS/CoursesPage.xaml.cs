@@ -24,7 +24,6 @@ namespace FLS
 
         private void LoadCourses()
         {
-            // Initialize with dummy data
             if (_courses.Count == 0)
             {
                 var dummyCourses = new List<Course>
@@ -36,7 +35,6 @@ namespace FLS
                         Code = "CS101",
                         Description = "Fundamentals of programming and problem-solving",
                         Credits = 3,
-                        Instructor = "Dr. John Smith",
                         CreatedDate = DateTime.Now.AddDays(-30)
                     },
                     new Course
@@ -46,7 +44,6 @@ namespace FLS
                         Code = "CS201",
                         Description = "Advanced data structures and algorithm design",
                         Credits = 4,
-                        Instructor = "Dr. Jane Doe",
                         CreatedDate = DateTime.Now.AddDays(-20)
                     },
                     new Course
@@ -56,7 +53,6 @@ namespace FLS
                         Code = "CS301",
                         Description = "Design and implementation of database systems",
                         Credits = 3,
-                        Instructor = "Dr. Robert Johnson",
                         CreatedDate = DateTime.Now.AddDays(-10)
                     }
                 };
@@ -104,7 +100,6 @@ namespace FLS
                 Code = CourseCodeTextBox.Text.Trim(),
                 Description = CourseDescriptionTextBox.Text.Trim(),
                 Credits = int.TryParse(CourseCreditsTextBox.Text, out int credits) ? credits : 0,
-                Instructor = CourseInstructorTextBox.Text.Trim(),
                 CreatedDate = DateTime.Now
             };
 
@@ -144,7 +139,6 @@ namespace FLS
             CourseCodeTextBox.Clear();
             CourseDescriptionTextBox.Clear();
             CourseCreditsTextBox.Clear();
-            CourseInstructorTextBox.Clear();
         }
 
         private void UpdateEmptyState()

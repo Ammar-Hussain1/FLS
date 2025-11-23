@@ -12,26 +12,29 @@ namespace FLS
     {
         private Course _course;
 
+        // Data Collections
+        private List<CourseMaterial> _quizzes;
+        private List<CourseMaterial> _assignments;
+        private List<CourseMaterial> _mid1;
+        private List<CourseMaterial> _mid2;
+        private List<CourseMaterial> _finalExam;
+        private List<Playlist> _playlists;
+
         public CourseDetailView()
         {
             InitializeComponent();
         }
-
-        public void LoadCourse(Course course)
+        public void SetCourse(Course course)
         {
             _course = course;
-            
-            CourseNameText.Text = course.Name;
-            CourseCodeText.Text = $"Course Code: {course.Code}";
-            InstructorText.Text = course.Instructor;
-            CreditsText.Text = course.Credits.ToString();
-
-            LoadDummyData();
+            CourseNameText.Text = _course.Name;
+            CourseCodeText.Text = _course.Code;
+            CreditsText.Text = _course.Credits.ToString();
         }
 
-        private void LoadDummyData()
+        public void LoadDummyData()
         {
-            var quizzes = new List<CourseMaterial>
+            _quizzes = new List<CourseMaterial>
             {
                 new CourseMaterial
                 {
@@ -61,9 +64,8 @@ namespace FLS
                     Type = MaterialType.Quiz
                 }
             };
-            QuizzesItemsControl.ItemsSource = quizzes;
 
-            var assignments = new List<CourseMaterial>
+            _assignments = new List<CourseMaterial>
             {
                 new CourseMaterial
                 {
@@ -93,9 +95,8 @@ namespace FLS
                     Type = MaterialType.Assignment
                 }
             };
-            AssignmentsItemsControl.ItemsSource = assignments;
 
-            var mid1 = new List<CourseMaterial>
+            _mid1 = new List<CourseMaterial>
             {
                 new CourseMaterial
                 {
@@ -107,9 +108,8 @@ namespace FLS
                     Type = MaterialType.Mid1
                 }
             };
-            Mid1ItemsControl.ItemsSource = mid1;
 
-            var mid2 = new List<CourseMaterial>
+            _mid2 = new List<CourseMaterial>
             {
                 new CourseMaterial
                 {
@@ -121,9 +121,8 @@ namespace FLS
                     Type = MaterialType.Mid2
                 }
             };
-            Mid2ItemsControl.ItemsSource = mid2;
 
-            var finalExam = new List<CourseMaterial>
+            _finalExam = new List<CourseMaterial>
             {
                 new CourseMaterial
                 {
@@ -135,40 +134,91 @@ namespace FLS
                     Type = MaterialType.Final
                 }
             };
-            FinalExamItemsControl.ItemsSource = finalExam;
 
-            var playlists = new List<Playlist>
+            _playlists = new List<Playlist>
             {
                 new Playlist
                 {
                     Id = 1,
                     Title = "Introduction to Programming - Complete Series",
                     Description = "Complete video series covering all fundamental programming concepts",
-                    Link = "https://www.youtube.com/playlist?list=PLdummy1"
+                    Link = "https://www.youtube.com/playlist?list=PLdummy1",
+                    ThumbnailUrl = "https://img.youtube.com/vi/dQw4w9WgXcQ/mqdefault.jpg"
                 },
                 new Playlist
                 {
                     Id = 2,
                     Title = "Data Structures Explained",
                     Description = "In-depth explanations of various data structures with examples",
-                    Link = "https://www.youtube.com/playlist?list=PLdummy2"
+                    Link = "https://www.youtube.com/playlist?list=PLdummy2",
+                    ThumbnailUrl = "https://img.youtube.com/vi/dQw4w9WgXcQ/mqdefault.jpg"
                 },
                 new Playlist
                 {
                     Id = 3,
                     Title = "Algorithm Design Patterns",
                     Description = "Common algorithm patterns and problem-solving strategies",
-                    Link = "https://www.youtube.com/playlist?list=PLdummy3"
+                    Link = "https://www.youtube.com/playlist?list=PLdummy3",
+                    ThumbnailUrl = "https://img.youtube.com/vi/dQw4w9WgXcQ/mqdefault.jpg"
                 },
                 new Playlist
                 {
                     Id = 4,
                     Title = "Practice Problems and Solutions",
                     Description = "Step-by-step solutions to common programming problems",
-                    Link = "https://www.youtube.com/playlist?list=PLdummy4"
+                    Link = "https://www.youtube.com/playlist?list=PLdummy4",
+                    ThumbnailUrl = "https://img.youtube.com/vi/dQw4w9WgXcQ/mqdefault.jpg"
                 }
             };
-            PlaylistsItemsControl.ItemsSource = playlists;
+        }
+
+        private void Folder_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button button && button.Tag is string category)
+            {
+                ShowCategory(category);
+            }
+        }
+
+        private void ShowCategory(string category)
+        {
+            FoldersGrid.Visibility = Visibility.Collapsed;
+            ItemsGrid.Visibility = Visibility.Visible;
+
+            switch (category)
+            {
+                case "Quizzes":
+                    CategoryTitleText.Text = "Quizzes";
+                    CategoryItemsControl.ItemsSource = _quizzes;
+                    break;
+                case "Assignments":
+                    CategoryTitleText.Text = "Assignments";
+                    CategoryItemsControl.ItemsSource = _assignments;
+                    break;
+                case "Mid1":
+                    CategoryTitleText.Text = "Mid Term 1";
+                    CategoryItemsControl.ItemsSource = _mid1;
+                    break;
+                case "Mid2":
+                    CategoryTitleText.Text = "Mid Term 2";
+                    CategoryItemsControl.ItemsSource = _mid2;
+                    break;
+                case "Final":
+                    CategoryTitleText.Text = "Final Exam";
+                    CategoryItemsControl.ItemsSource = _finalExam;
+                    break;
+                case "Playlists":
+                    CategoryTitleText.Text = "Playlists";
+                    CategoryItemsControl.ItemsSource = _playlists;
+                    break;
+            }
+        }
+
+        private void BackToFolders_Click(object sender, RoutedEventArgs e)
+        {
+            ItemsGrid.Visibility = Visibility.Collapsed;
+            FoldersGrid.Visibility = Visibility.Visible;
+            CategoryItemsControl.ItemsSource = null;
         }
 
         private void PreviewButton_Click(object sender, RoutedEventArgs e)
@@ -177,11 +227,15 @@ namespace FLS
             {
                 try
                 {
-                    Process.Start(new ProcessStartInfo
+                    string title = "Document Preview";
+                    if (button.DataContext is CourseMaterial material && material.Title != null)
                     {
-                        FileName = link,
-                        UseShellExecute = true
-                    });
+                        title = material.Title;
+                    }
+
+                    var viewer = new PdfViewerWindow(link, title);
+                    viewer.Owner = Window.GetWindow(this);
+                    viewer.Show();
                 }
                 catch (Exception ex)
                 {
@@ -233,7 +287,14 @@ namespace FLS
 
         private void BackButton_Click(object sender, RoutedEventArgs e)
         {
-            BackRequested?.Invoke(this, EventArgs.Empty);
+            if (ItemsGrid.Visibility == Visibility.Visible)
+            {
+                BackToFolders_Click(sender, e);
+            }
+            else
+            {
+                BackRequested?.Invoke(this, EventArgs.Empty);
+            }
         }
     }
 }

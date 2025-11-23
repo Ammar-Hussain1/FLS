@@ -8,7 +8,7 @@ namespace FLS
 {
     public partial class SavedCoursesView : UserControl
     {
-        private ObservableCollection<Course> _savedCourses;
+        private ObservableCollection<UserCourse> _savedCourses;
         private Dashboard _parentDashboard;
 
         public event Action<Models.Course> CourseSelected;
@@ -16,21 +16,21 @@ namespace FLS
         public SavedCoursesView()
         {
             InitializeComponent();
-            _savedCourses = new ObservableCollection<Course>();
+            _savedCourses = new ObservableCollection<UserCourse>();
             SavedCoursesItemsControl.ItemsSource = _savedCourses;
             LoadSavedCourses();
         }
 
         private void CourseCard_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
-            if (sender is Border border && border.Tag is Course course)
+            if (sender is Border border && border.Tag is UserCourse userCourse)
             {
                 // Don't trigger if clicking on the remove button
                 if (e.OriginalSource is Button)
                 {
                     return;
                 }
-                CourseSelected?.Invoke(course);
+                CourseSelected?.Invoke(userCourse.Course);
             }
         }
 
@@ -44,12 +44,12 @@ namespace FLS
             UpdateEmptyState();
         }
 
-        public void SetSavedCourses(ObservableCollection<Course> savedCourses)
+        public void SetSavedCourses(ObservableCollection<UserCourse> savedCourses)
         {
             _savedCourses.Clear();
-            foreach (var course in savedCourses)
+            foreach (var userCourse in savedCourses)
             {
-                _savedCourses.Add(course);
+                _savedCourses.Add(userCourse);
             }
             UpdateEmptyState();
         }
@@ -66,10 +66,10 @@ namespace FLS
 
                 if (result == MessageBoxResult.Yes)
                 {
-                    var courseToRemove = _savedCourses.FirstOrDefault(c => c.Id == courseId);
-                    if (courseToRemove != null)
+                    var userCourseToRemove = _savedCourses.FirstOrDefault(uc => uc.Course.Id == courseId);
+                    if (userCourseToRemove != null)
                     {
-                        _savedCourses.Remove(courseToRemove);
+                        _savedCourses.Remove(userCourseToRemove);
                         
                         // Notify AllCoursesView to update
                         if (_parentDashboard != null)
@@ -90,4 +90,3 @@ namespace FLS
         }
     }
 }
-
