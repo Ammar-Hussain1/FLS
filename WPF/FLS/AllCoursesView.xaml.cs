@@ -13,11 +13,12 @@ namespace FLS
     public partial class AllCoursesView : UserControl
     {
         private ObservableCollection<Course> _courses;
-        private ObservableCollection<Course> _savedCourses;
+        private ObservableCollection<UserCourse> _savedCourses;
         private CollectionViewSource _coursesViewSource;
         private int _nextCourseId = 1;
+        private int _nextUserCourseId = 1;
 
-        public event Action<ObservableCollection<Course>> SavedCoursesChanged;
+        public event Action<ObservableCollection<UserCourse>> SavedCoursesChanged;
         public event Action<Models.Course> CourseSelected;
 
         public AllCoursesView()
@@ -25,7 +26,7 @@ namespace FLS
             InitializeComponent();
             
             _courses = new ObservableCollection<Course>();
-            _savedCourses = new ObservableCollection<Course>();
+            _savedCourses = new ObservableCollection<UserCourse>();
             
             // Set up CollectionViewSource for filtering
             _coursesViewSource = new CollectionViewSource();
@@ -49,7 +50,6 @@ namespace FLS
                         Code = "CS101",
                         Description = "Fundamentals of programming and problem-solving",
                         Credits = 3,
-                        Instructor = "Dr. John Smith",
                         CreatedDate = DateTime.Now.AddDays(-30)
                     },
                     new Course
@@ -59,7 +59,6 @@ namespace FLS
                         Code = "CS201",
                         Description = "Advanced data structures and algorithm design",
                         Credits = 4,
-                        Instructor = "Dr. Jane Doe",
                         CreatedDate = DateTime.Now.AddDays(-20)
                     },
                     new Course
@@ -69,7 +68,6 @@ namespace FLS
                         Code = "CS301",
                         Description = "Design and implementation of database systems",
                         Credits = 3,
-                        Instructor = "Dr. Robert Johnson",
                         CreatedDate = DateTime.Now.AddDays(-10)
                     },
                     new Course
@@ -79,7 +77,6 @@ namespace FLS
                         Code = "CS401",
                         Description = "Modern web development with HTML, CSS, and JavaScript",
                         Credits = 3,
-                        Instructor = "Dr. Sarah Williams",
                         CreatedDate = DateTime.Now.AddDays(-5)
                     },
                     new Course
@@ -89,7 +86,6 @@ namespace FLS
                         Code = "CS501",
                         Description = "Introduction to machine learning algorithms and applications",
                         Credits = 4,
-                        Instructor = "Dr. Michael Brown",
                         CreatedDate = DateTime.Now.AddDays(-2)
                     }
                 };
@@ -137,7 +133,6 @@ namespace FLS
                 Code = CourseCodeTextBox.Text.Trim(),
                 Description = CourseDescriptionTextBox.Text.Trim(),
                 Credits = int.TryParse(CourseCreditsTextBox.Text, out int credits) ? credits : 0,
-                Instructor = CourseInstructorTextBox.Text.Trim(),
                 CreatedDate = DateTime.Now
             };
 
@@ -154,15 +149,42 @@ namespace FLS
             if (sender is Button button && button.Tag is int courseId)
             {
                 var course = _courses.FirstOrDefault(c => c.Id == courseId);
-                if (course != null && !_savedCourses.Any(c => c.Id == courseId))
+                if (course != null)
                 {
-                    _savedCourses.Add(course);
-                    SavedCoursesChanged?.Invoke(_savedCourses);
-                    MessageBox.Show($"Course '{course.Name}' saved to your saved courses!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
-                }
-                else if (_savedCourses.Any(c => c.Id == courseId))
-                {
-                    MessageBox.Show("This course is already saved!", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
+                    // Check if course is already saved
+                    if (_savedCourses.Any(uc => uc.Course.Id == courseId))
+                    {
+                        MessageBox.Show("This course is already saved!", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
+                        return;
+                    }
+
+                    // Prompt user for section number
+                    var sectionDialog = new SectionInputDialog(course.Name)
+                    {
+                        Owner = Window.GetWindow(this)
+                    };
+
+                    // Only save if user provides section and clicks Save
+                    if (sectionDialog.ShowDialog() == true && sectionDialog.IsSaved)
+                    {
+                        var userCourse = new UserCourse
+                        {
+                            Id = _nextUserCourseId++,
+                            Course = course,
+                            Section = sectionDialog.Section,
+                            EnrolledDate = DateTime.Now
+                        };
+
+                        _savedCourses.Add(userCourse);
+                        SavedCoursesChanged?.Invoke(_savedCourses);
+                        
+                        MessageBox.Show(
+                            $"Course '{course.Name}' (Section {userCourse.Section}) has been saved!\n\n" +
+                            "This information will be used to generate your timetable later.",
+                            "Course Saved",
+                            MessageBoxButton.OK,
+                            MessageBoxImage.Information);
+                    }
                 }
             }
         }
@@ -185,7 +207,6 @@ namespace FLS
             CourseCodeTextBox.Clear();
             CourseDescriptionTextBox.Clear();
             CourseCreditsTextBox.Clear();
-            CourseInstructorTextBox.Clear();
         }
 
         private void UpdateEmptyState()
@@ -248,8 +269,7 @@ namespace FLS
                 {
                     e.Accepted = course.Name.ToLower().Contains(searchText) ||
                                  course.Code.ToLower().Contains(searchText) ||
-                                 course.Description.ToLower().Contains(searchText) ||
-                                 course.Instructor.ToLower().Contains(searchText);
+                                 course.Description.ToLower().Contains(searchText);
                 }
             }
             else
@@ -258,17 +278,22 @@ namespace FLS
             }
         }
 
-        public ObservableCollection<Course> GetSavedCourses()
+        public ObservableCollection<UserCourse> GetSavedCourses()
         {
             return _savedCourses;
         }
 
+        public ObservableCollection<Course> GetCourses()
+        {
+            return _courses;
+        }
+
         public void RemoveFromSaved(int courseId)
         {
-            var course = _savedCourses.FirstOrDefault(c => c.Id == courseId);
-            if (course != null)
+            var userCourse = _savedCourses.FirstOrDefault(uc => uc.Course.Id == courseId);
+            if (userCourse != null)
             {
-                _savedCourses.Remove(course);
+                _savedCourses.Remove(userCourse);
                 SavedCoursesChanged?.Invoke(_savedCourses);
             }
         }

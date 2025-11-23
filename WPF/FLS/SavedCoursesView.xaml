@@ -68,16 +68,22 @@
                                     </Grid.RowDefinitions>
 
                                     <StackPanel Grid.Column="0" Grid.Row="0">
-                                        <TextBlock Text="{Binding Name}"
+                                        <TextBlock Text="{Binding Course.Name}"
                                                    FontSize="24"
                                                    FontWeight="Bold"
                                                    Foreground="{StaticResource Primary}"
                                                    Margin="0,0,0,5"/>
                                         <TextBlock FontSize="18"
                                                    Foreground="{StaticResource Accent}"
-                                                   Margin="0,0,0,10">
+                                                   Margin="0,0,0,5">
                                             <Run Text="Code: " FontWeight="SemiBold"/>
-                                            <Run Text="{Binding Code}"/>
+                                            <Run Text="{Binding Course.Code}"/>
+                                        </TextBlock>
+                                        <TextBlock FontSize="16"
+                                                   Foreground="{StaticResource Success}"
+                                                   FontWeight="SemiBold">
+                                            <Run Text="Section: "/>
+                                            <Run Text="{Binding Section}"/>
                                         </TextBlock>
                                     </StackPanel>
 
@@ -93,14 +99,14 @@
                                             BorderThickness="0"
                                             Cursor="Hand"
                                             Padding="0"
-                                            Tag="{Binding Id}"
+                                            Tag="{Binding Course.Id}"
                                             Click="RemoveCourseButton_Click"
                                             ToolTip="Remove from Saved"/>
 
                                     <TextBlock Grid.Column="0" 
                                                Grid.Row="1"
                                                Grid.ColumnSpan="2"
-                                               Text="{Binding Description}"
+                                               Text="{Binding Course.Description}"
                                                FontSize="16"
                                                Foreground="{StaticResource Primary}"
                                                TextWrapping="Wrap"
@@ -114,18 +120,12 @@
                                                    Foreground="{StaticResource Primary}"
                                                    Margin="0,0,20,0">
                                             <Run Text="Credits: " FontWeight="SemiBold"/>
-                                            <Run Text="{Binding Credits}"/>
-                                        </TextBlock>
-                                        <TextBlock FontSize="14"
-                                                   Foreground="{StaticResource Primary}"
-                                                   Margin="0,0,20,0">
-                                            <Run Text="Instructor: " FontWeight="SemiBold"/>
-                                            <Run Text="{Binding Instructor}"/>
+                                            <Run Text="{Binding Course.Credits}"/>
                                         </TextBlock>
                                         <TextBlock FontSize="14"
                                                    Foreground="{StaticResource Primary}">
-                                            <Run Text="Added: " FontWeight="SemiBold"/>
-                                            <Run Text="{Binding CreatedDate, StringFormat='{}{0:MMM dd, yyyy}'}"/>
+                                            <Run Text="Enrolled: " FontWeight="SemiBold"/>
+                                            <Run Text="{Binding EnrolledDate, StringFormat='{}{0:MMM dd, yyyy}'}"/>
                                         </TextBlock>
                                     </StackPanel>
                                 </Grid>

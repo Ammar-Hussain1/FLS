@@ -112,28 +112,14 @@
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
                             
-                            <StackPanel Grid.Column="0" Margin="0,0,10,0">
+                            <StackPanel Grid.Column="0">
                                 <TextBlock Text="Credits"
                                            Foreground="{StaticResource Primary}"
                                            FontSize="18"
                                            Margin="0,0,0,8"/>
                                 <TextBox Name="CourseCreditsTextBox"
-                                         FontSize="18"
-                                         Background="White"
-                                         BorderBrush="{StaticResource Accent}"
-                                         BorderThickness="2"
-                                         Padding="12"/>
-                            </StackPanel>
-
-                            <StackPanel Grid.Column="1" Margin="10,0,0,0">
-                                <TextBlock Text="Instructor"
-                                           Foreground="{StaticResource Primary}"
-                                           FontSize="18"
-                                           Margin="0,0,0,8"/>
-                                <TextBox Name="CourseInstructorTextBox"
                                          FontSize="18"
                                          Background="White"
                                          BorderBrush="{StaticResource Accent}"
@@ -242,8 +228,8 @@
                                         <TextBlock FontSize="14"
                                                    Foreground="{StaticResource Primary}"
                                                    Margin="0,0,20,0">
-                                            <Run Text="Instructor: " FontWeight="SemiBold"/>
-                                            <Run Text="{Binding Instructor}"/>
+                                            <Run Text="Credits: " FontWeight="SemiBold"/>
+                                            <Run Text="{Binding Credits}"/>
                                         </TextBlock>
                                         <TextBlock FontSize="14"
                                                    Foreground="{StaticResource Primary}">
