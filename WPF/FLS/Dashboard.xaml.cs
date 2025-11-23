@@ -13,6 +13,7 @@ namespace FLS
         private SavedCoursesView _savedCoursesView;
         private CourseDetailView _courseDetailView;
         private CourseMaterialSubmissionView _courseMaterialSubmissionView;
+        private ChatView _chatView;
         private UserControl _currentView;
         private UserControl _previousView;
 
@@ -177,6 +178,22 @@ namespace FLS
             UpdateTabSelection(SettingsTab);
         }
 
+        private void AIChatTab_Click(object sender, RoutedEventArgs e)
+        {
+            LoadChatView();
+        }
+
+        private void LoadChatView()
+        {
+            if (_chatView == null)
+            {
+                _chatView = new ChatView();
+            }
+            ContentArea.Content = _chatView;
+            _currentView = _chatView;
+            UpdateTabSelection(AIChatTab);
+        }
+
         private void LogoutButton_Click(object sender, RoutedEventArgs e)
         {
             var result = MessageBox.Show(
@@ -200,6 +217,7 @@ namespace FLS
             CourseMaterialTab.Background = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#2B2D42"));
             MyProgressTab.Background = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#2B2D42"));
             SettingsTab.Background = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#2B2D42"));
+            AIChatTab.Background = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#2B2D42"));
 
             selectedButton.Background = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#4281A4"));
         }

@@ -24,11 +24,9 @@
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
-        <!-- Left Sidebar -->
         <Border Grid.Column="0" 
                 Background="{StaticResource Primary}"
-                BorderBrush="{StaticResource Accent}"
-                BorderThickness="0,0,2,0">
+              >
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
@@ -36,10 +34,9 @@
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
-                <!-- Sidebar Header -->
                 <Border Grid.Row="0" 
                         Background="{StaticResource Accent}" 
-                        Padding="20,25">
+                        Padding="20,28">
                     <TextBlock Text="FAST Learning System"
                                FontSize="20"
                                FontWeight="Bold"
@@ -47,7 +44,6 @@
                                TextWrapping="Wrap"/>
                 </Border>
 
-                <!-- Navigation Menu -->
                 <StackPanel Grid.Row="1" 
                             Margin="10,20,10,20">
                     <Button Name="AllCoursesTab"
@@ -161,7 +157,32 @@
                             HorizontalAlignment="Stretch"
                             HorizontalContentAlignment="Left"
                             Cursor="Hand"
-                            Click="SettingsTab_Click">
+                            Click="SettingsTab_Click"
+                            Margin="0,0,0,10">
+                        <Button.Style>
+                            <Style TargetType="Button">
+                                <Setter Property="Background" Value="Transparent"/>
+                                <Style.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter Property="Background" Value="{StaticResource SidebarHover}"/>
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
+
+                    <Button Name="AIChatTab"
+                            Content="🤖 AI Chat"
+                            FontSize="18"
+                            FontWeight="SemiBold"
+                            Background="Transparent"
+                            Foreground="{StaticResource Surface}"
+                            BorderThickness="0"
+                            Padding="15,15"
+                            HorizontalAlignment="Stretch"
+                            HorizontalContentAlignment="Left"
+                            Cursor="Hand"
+                            Click="AIChatTab_Click">
                         <Button.Style>
                             <Style TargetType="Button">
                                 <Setter Property="Background" Value="Transparent"/>
@@ -175,10 +196,8 @@
                     </Button>
                 </StackPanel>
 
-                <!-- Logout Button -->
                 <Border Grid.Row="2" 
                         Padding="10,15"
-                        BorderBrush="{StaticResource Accent}"
                         BorderThickness="0,2,0,0">
                     <Button Name="LogoutButton"
                             Content="🚪 Logout"
@@ -207,7 +226,6 @@
             </Grid>
         </Border>
 
-        <!-- Main Content Area -->
         <Grid Grid.Column="1" 
               Background="{StaticResource Surface}">
             <ContentControl Name="ContentArea"/>
