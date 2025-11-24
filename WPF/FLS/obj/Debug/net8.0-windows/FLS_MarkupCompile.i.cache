@@ -10,11 +10,11 @@ none
 false
 TRACE;DEBUG;NET;NET8_0;NETCOREAPP;WINDOWS;WINDOWS7_0;NET5_0_OR_GREATER;NET6_0_OR_GREATER;NET7_0_OR_GREATER;NET8_0_OR_GREATER;NETCOREAPP3_0_OR_GREATER;NETCOREAPP3_1_OR_GREATER;WINDOWS7_0_OR_GREATER
 D:\Advance Programming\FAST-LEARNING-SYSTEM\FLS\WPF\FLS\App.xaml
-11995694033
+12-980982047
 3-501004955
-22-1752249243
+25-1256255597
 201-691347500
-AllCoursesView.xaml;ChatView.xaml;CourseDetailView.xaml;CourseMaterialSubmissionView.xaml;CoursesPage.xaml;Dashboard.xaml;LoginPage.xaml;PdfViewerWindow.xaml;SavedCoursesView.xaml;SectionInputDialog.xaml;SignUpPage.xaml;
+AllCoursesView.xaml;ChatView.xaml;CourseDetailView.xaml;CourseMaterialSubmissionView.xaml;CoursesPage.xaml;Dashboard.xaml;LoginPage.xaml;PdfViewerWindow.xaml;SavedCoursesView.xaml;SectionInputDialog.xaml;SignUpPage.xaml;UserPlaylistView.xaml;
 
 False
 
