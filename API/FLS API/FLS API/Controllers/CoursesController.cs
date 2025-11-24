@@ -17,7 +17,6 @@ namespace FLS_API.Controllers
                 Code = "CS101",
                 Description = "Fundamentals of programming and problem-solving",
                 Credits = 3,
-                Credits = 3,
                 CreatedDate = DateTime.Now.AddDays(-30)
             },
             new Course
@@ -27,7 +26,6 @@ namespace FLS_API.Controllers
                 Code = "CS201",
                 Description = "Advanced data structures and algorithm design",
                 Credits = 4,
-                Credits = 4,
                 CreatedDate = DateTime.Now.AddDays(-20)
             },
             new Course
@@ -36,7 +34,6 @@ namespace FLS_API.Controllers
                 Name = "Database Systems",
                 Code = "CS301",
                 Description = "Design and implementation of database systems",
-                Credits = 3,
                 Credits = 3,
                 CreatedDate = DateTime.Now.AddDays(-10)
             }
