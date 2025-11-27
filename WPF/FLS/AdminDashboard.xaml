@@ -1,0 +1,168 @@
+<Window x:Class="FLS.AdminDashboard"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Admin Dashboard - FAST Learning System"
+        WindowStartupLocation="CenterScreen"
+        ResizeMode="CanResize"
+        MinWidth="1200"
+        MinHeight="700"
+        Background="#2B2D42">
+
+    <Window.Resources>
+        <SolidColorBrush x:Key="Primary" Color="#2B2D42"/>
+        <SolidColorBrush x:Key="Surface" Color="#FFEDDF"/>
+        <SolidColorBrush x:Key="Accent" Color="#4281A4"/>
+        <SolidColorBrush x:Key="Success" Color="#48A9A6"/>
+        <SolidColorBrush x:Key="Danger" Color="#E63946"/>
+        <SolidColorBrush x:Key="SidebarHover" Color="#3A3D55"/>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="250"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- Sidebar -->
+        <Border Grid.Column="0" 
+                Background="{StaticResource Primary}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <!-- Header -->
+                <Border Grid.Row="0" 
+                        Background="{StaticResource Accent}" 
+                        Padding="20,28">
+                    <StackPanel>
+                        <TextBlock Text="⚙️ Admin Panel"
+                                   FontSize="20"
+                                   FontWeight="Bold"
+                                   Foreground="{StaticResource Surface}"/>
+                        <TextBlock Text="Management Dashboard"
+                                   FontSize="12"
+                                   Foreground="{StaticResource Surface}"
+                                   Opacity="0.8"
+                                   Margin="0,5,0,0"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Navigation -->
+                <StackPanel Grid.Row="1" 
+                            Margin="10,20,10,20">
+                    <Button Name="CourseManagementTab"
+                            Content="📚 Course Management"
+                            FontSize="18"
+                            FontWeight="SemiBold"
+                            Background="Transparent"
+                            Foreground="{StaticResource Surface}"
+                            BorderThickness="0"
+                            Padding="15,15"
+                            HorizontalAlignment="Stretch"
+                            HorizontalContentAlignment="Left"
+                            Cursor="Hand"
+                            Click="CourseManagementTab_Click"
+                            Margin="0,0,0,10">
+                        <Button.Style>
+                            <Style TargetType="Button">
+                                <Setter Property="Background" Value="Transparent"/>
+                                <Style.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter Property="Background" Value="{StaticResource SidebarHover}"/>
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
+
+                    <Button Name="MaterialRequestsTab"
+                            Content="📄 Material Requests"
+                            FontSize="18"
+                            FontWeight="SemiBold"
+                            Background="Transparent"
+                            Foreground="{StaticResource Surface}"
+                            BorderThickness="0"
+                            Padding="15,15"
+                            HorizontalAlignment="Stretch"
+                            HorizontalContentAlignment="Left"
+                            Cursor="Hand"
+                            Click="MaterialRequestsTab_Click"
+                            Margin="0,0,0,10">
+                        <Button.Style>
+                            <Style TargetType="Button">
+                                <Setter Property="Background" Value="Transparent"/>
+                                <Style.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter Property="Background" Value="{StaticResource SidebarHover}"/>
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
+
+                    <Button Name="PlaylistRequestsTab"
+                            Content="🎵 Playlist Requests"
+                            FontSize="18"
+                            FontWeight="SemiBold"
+                            Background="Transparent"
+                            Foreground="{StaticResource Surface}"
+                            BorderThickness="0"
+                            Padding="15,15"
+                            HorizontalAlignment="Stretch"
+                            HorizontalContentAlignment="Left"
+                            Cursor="Hand"
+                            Click="PlaylistRequestsTab_Click">
+                        <Button.Style>
+                            <Style TargetType="Button">
+                                <Setter Property="Background" Value="Transparent"/>
+                                <Style.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter Property="Background" Value="{StaticResource SidebarHover}"/>
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
+                </StackPanel>
+
+                <!-- Logout -->
+                <Border Grid.Row="2" 
+                        Padding="10,15"
+                        BorderThickness="0,2,0,0">
+                    <Button Name="LogoutButton"
+                            Content="🚪 Logout"
+                            FontSize="16"
+                            FontWeight="SemiBold"
+                            Background="Transparent"
+                            Foreground="{StaticResource Surface}"
+                            BorderThickness="0"
+                            Padding="15,10"
+                            HorizontalAlignment="Stretch"
+                            HorizontalContentAlignment="Left"
+                            Cursor="Hand"
+                            Click="LogoutButton_Click">
+                        <Button.Style>
+                            <Style TargetType="Button">
+                                <Setter Property="Background" Value="Transparent"/>
+                                <Style.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter Property="Background" Value="{StaticResource SidebarHover}"/>
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
+                </Border>
+            </Grid>
+        </Border>
+
+        <!-- Content Area -->
+        <Grid Grid.Column="1" 
+              Background="{StaticResource Surface}">
+            <ContentControl Name="ContentArea"/>
+        </Grid>
+    </Grid>
+</Window>

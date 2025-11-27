@@ -15,6 +15,7 @@ namespace FLS
         private CourseMaterialSubmissionView _courseMaterialSubmissionView;
         private ChatView _chatView;
         private UserPlaylistView _userPlaylistView;
+        private TimetableView _timetableView;
         private UserControl _currentView;
         private UserControl _previousView;
 
@@ -151,16 +152,17 @@ namespace FLS
 
         private void MyProgressTab_Click(object sender, RoutedEventArgs e)
         {
-            var progressView = new TextBlock
+            LoadTimetableView();
+        }
+
+        private void LoadTimetableView()
+        {
+            if (_timetableView == null)
             {
-                Text = "My Progress - Coming Soon!",
-                FontSize=24,
-                HorizontalAlignment = HorizontalAlignment.Center,
-                VerticalAlignment = VerticalAlignment.Center,
-                Foreground = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#2B2D42"))
-            };
-            ContentArea.Content = progressView;
-            _currentView = null;
+                _timetableView = new TimetableView();
+            }
+            ContentArea.Content = _timetableView;
+            _currentView = _timetableView;
             UpdateTabSelection(MyProgressTab);
         }
 

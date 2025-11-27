@@ -21,9 +21,23 @@ namespace WpfLoginApp
 
         private void LoginButton_Click(object sender, RoutedEventArgs e) 
         {
-            Dashboard dashboard = new Dashboard();
-            dashboard.Show();
-            this.Close();
+            string username = UsernameTextBox.Text.Trim();
+            string password = PasswordBox.Password;
+
+            // Check for admin credentials
+            if (username == "admin" && password == "123")
+            {
+                AdminDashboard adminDashboard = new AdminDashboard();
+                adminDashboard.Show();
+                this.Close();
+            }
+            else
+            {
+                // Regular user login
+                Dashboard dashboard = new Dashboard();
+                dashboard.Show();
+                this.Close();
+            }
         }
 
         private void Login_Click(object sender, RoutedEventArgs e) { }
