@@ -52,7 +52,8 @@
                            Foreground="{StaticResource Primary}"
                            FontSize="20"
                            Margin="0,0,0,8"/>
-                <TextBox FontSize="20"
+                <TextBox Name="UsernameTextBox"
+                         FontSize="20"
                          Background="{StaticResource Surface}"
                          BorderBrush="{StaticResource Accent}"
                          BorderThickness="2"
@@ -64,7 +65,8 @@
                            Foreground="{StaticResource Primary}"
                            FontSize="20"
                            Margin="0,0,0,8"/>
-                <PasswordBox FontSize="20"
+                <PasswordBox Name="PasswordBox"
+                             FontSize="20"
                              Background="{StaticResource Surface}"
                              BorderBrush="{StaticResource Accent}"
                              BorderThickness="2"

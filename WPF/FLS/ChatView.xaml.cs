@@ -6,6 +6,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Threading;
 using FLS.Models;
+using FLS.Helpers;
 
 namespace FLS
 {
@@ -34,7 +35,21 @@ namespace FLS
             _random = new Random();
             MessagesContainer.ItemsSource = _messages;
 
+            // Check if API key is configured
+            CheckAndPromptForApiKey();
+
             AddAIMessage("Hello! I'm your AI Learning Assistant. How can I help you with your courses today?");
+        }
+
+        private void CheckAndPromptForApiKey()
+        {
+            if (!AppSettings.HasApiKey())
+            {
+                // Show API key configuration dialog
+                var dialog = new ApiKeyDialog();
+                dialog.Owner = Window.GetWindow(this);
+                dialog.ShowDialog();
+            }
         }
 
         private void SendButton_Click(object sender, RoutedEventArgs e)
