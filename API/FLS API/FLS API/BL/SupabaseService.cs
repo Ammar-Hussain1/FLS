@@ -12,9 +12,18 @@ namespace FLS_API.BL
 
         public SupabaseService(Models.SupabaseOptions options)
         {
+            if (string.IsNullOrEmpty(options.Url))
+                throw new ArgumentException("Supabase URL is required", nameof(options));
+            
+            // Use AnonKey for PostgREST operations, ServiceRoleKey for admin operations
+            var apiKey = !string.IsNullOrEmpty(options.AnonKey) ? options.AnonKey : options.ServiceRoleKey;
+            
+            if (string.IsNullOrEmpty(apiKey))
+                throw new ArgumentException("Supabase API key (AnonKey or ServiceRoleKey) is required", nameof(options));
+
             _client = new Supabase.Client(
                 options.Url,
-                options.ServiceRoleKey
+                apiKey
             );
             
             _client.InitializeAsync().GetAwaiter().GetResult();

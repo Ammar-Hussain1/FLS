@@ -10,11 +10,13 @@ builder.Services.AddControllers();
 
 // Configure Supabase
 var supabaseUrl = builder.Configuration["Supabase:Url"];
-var supabaseKey = builder.Configuration["Supabase:Key"];
+var supabaseServiceRoleKey = builder.Configuration["Supabase:ServiceRoleKey"];
+var supabaseAnonKey = builder.Configuration["Supabase:AnonKey"];
 var supabaseOptions = new FLS_API.Models.SupabaseOptions
 {
     Url = supabaseUrl,
-    ServiceRoleKey = supabaseKey
+    ServiceRoleKey = supabaseServiceRoleKey,
+    AnonKey = supabaseAnonKey
 };
 builder.Services.AddSingleton(supabaseOptions);
 builder.Services.AddScoped<SupabaseService>();
