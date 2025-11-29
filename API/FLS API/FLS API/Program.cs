@@ -1,23 +1,21 @@
-using FLS_API.BL;
 using FLS_API.DL;
-using FLS_API.Models;
+using FLS_API.BL;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddControllers();
-builder.Services.AddScoped<IChatbotService, ChatbotService>();
 
-//Swagger
+builder.Services.AddControllers();
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// Using real ChatbotService (will work once Supabase is configured)
+builder.Services.AddScoped<IChatbotService, ChatbotService>();
+// For testing without DB, use: builder.Services.AddScoped<IChatbotService, MockChatbotService>();
+// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-
-// Supabase Client
-builder.Services.Configure<SupabaseOptions>(builder.Configuration.GetSection("Supabase"));
-
-// Register SupabaseService
-builder.Services.AddSingleton<SupabaseService>();
 
 // Add CORS
 builder.Services.AddCors(options =>
@@ -42,6 +40,8 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.UseCors("AllowWPF");
+
+app.UseAuthorization();
 
 app.MapControllers();
 

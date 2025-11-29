@@ -1,54 +1,93 @@
 using System;
 using System.Collections.ObjectModel;
-using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Threading;
 using FLS.Models;
 using FLS.Helpers;
+using FLS.BL;
+using FLS.DL;
 
 namespace FLS
 {
+    /// <summary>
+    /// GUI layer for chat interface
+    /// Handles UI interactions and delegates business logic to BL layer
+    /// </summary>
     public partial class ChatView : UserControl
     {
         private ObservableCollection<ChatMessage> _messages;
-        private Random _random;
-        private string[] _dummyResponses = new string[]
-        {
-            "That's a great question! Based on the course materials, I'd recommend reviewing the fundamentals first.",
-            "I can help with that! Let me break it down for you step by step.",
-            "Interesting topic! This relates to several concepts we've covered in your courses.",
-            "I understand what you're asking. Here's what you need to know...",
-            "Good thinking! That's an important aspect of the subject.",
-            "Let me explain that concept in simpler terms for you.",
-            "That's covered in your course materials. Would you like me to elaborate?",
-            "Great question! This is a key concept that many students find challenging.",
-            "I'm here to help! Let's explore this topic together.",
-            "That's an excellent observation! You're on the right track."
-        };
+        private ChatService _chatService;
+        private ChatHistoryRepository _historyRepository;
+        private const int CURRENT_USER_ID = 1;
+        private bool _isLoading = false;
+        private string _userApiKey = string.Empty;
 
         public ChatView()
         {
             InitializeComponent();
             _messages = new ObservableCollection<ChatMessage>();
-            _random = new Random();
+            _historyRepository = new ChatHistoryRepository();
             MessagesContainer.ItemsSource = _messages;
 
             // Check if API key is configured
             CheckAndPromptForApiKey();
 
-            AddAIMessage("Hello! I'm your AI Learning Assistant. How can I help you with your courses today?");
+            // Initialize chat service with API key
+            if (!string.IsNullOrWhiteSpace(_userApiKey))
+            {
+                _chatService = new ChatService(_userApiKey);
+            }
+
+            // Load chat history from local storage
+            LoadChatHistory();
+
+            // Add greeting if no history
+            if (_messages.Count == 0)
+            {
+                AddAIMessage("Hello! I'm your AI Learning Assistant. How can I help you with your courses today?");
+            }
+        }
+
+        private void LoadChatHistory()
+        {
+            var history = _historyRepository.LoadHistory();
+            foreach (var message in history)
+            {
+                _messages.Add(message);
+            }
+
+            if (history.Count > 0)
+            {
+                ScrollToBottom();
+            }
+        }
+
+        private void SaveChatHistory()
+        {
+            _historyRepository.SaveHistory(_messages);
         }
 
         private void CheckAndPromptForApiKey()
         {
-            if (!AppSettings.HasApiKey())
+            _userApiKey = AppSettings.GetApiKey();
+
+            if (string.IsNullOrWhiteSpace(_userApiKey))
             {
-                // Show API key configuration dialog
                 var dialog = new ApiKeyDialog();
                 dialog.Owner = Window.GetWindow(this);
-                dialog.ShowDialog();
+                var result = dialog.ShowDialog();
+
+                if (result == true)
+                {
+                    _userApiKey = AppSettings.GetApiKey();
+                    _chatService = new ChatService(_userApiKey);
+                }
+                else
+                {
+                    AddAIMessage("⚠️ Please configure your Gemini API key to use the chatbot. You can get one from: https://aistudio.google.com/app/apikey");
+                }
             }
         }
 
@@ -66,66 +105,52 @@ namespace FLS
             }
         }
 
-        private void SendMessage()
+        private async void SendMessage()
         {
             string message = MessageInput.Text.Trim();
-            
-            if (string.IsNullOrWhiteSpace(message))
+
+            if (string.IsNullOrWhiteSpace(message) || _isLoading)
                 return;
 
+            if (_chatService == null || string.IsNullOrWhiteSpace(_userApiKey))
+            {
+                AddAIMessage("⚠️ Please configure your Gemini API key first.");
+                CheckAndPromptForApiKey();
+                return;
+            }
+
+            // Add user message to UI
             _messages.Add(new ChatMessage(message, true));
             MessageInput.Text = string.Empty;
-            
             ScrollToBottom();
 
-            var timer = new DispatcherTimer
-            {
-                Interval = TimeSpan.FromMilliseconds(800)
-            };
-            timer.Tick += (s, args) =>
-            {
-                timer.Stop();
-                GenerateAIResponse(message);
-            };
-            timer.Start();
-        }
+            // Show loading indicator
+            _isLoading = true;
+            var loadingMessage = new ChatMessage("Thinking...", false);
+            _messages.Add(loadingMessage);
+            ScrollToBottom();
 
-        private void GenerateAIResponse(string userMessage)
-        {
-            string response;
+            try
+            {
+                // Call business logic layer
+                var response = await _chatService.SendMessageAsync(CURRENT_USER_ID, message);
 
-            string lowerMessage = userMessage.ToLower();
-            
-            if (lowerMessage.Contains("hello") || lowerMessage.Contains("hi") || lowerMessage.Contains("hey"))
-            {
-                response = "Hello! How can I assist you with your learning today?";
-            }
-            else if (lowerMessage.Contains("course") || lowerMessage.Contains("class"))
-            {
-                response = "I can help you with information about your courses. What would you like to know?";
-            }
-            else if (lowerMessage.Contains("help") || lowerMessage.Contains("assist"))
-            {
-                response = "I'm here to help! You can ask me about courses, assignments, study tips, or any learning-related questions.";
-            }
-            else if (lowerMessage.Contains("thank"))
-            {
-                response = "You're welcome! Feel free to ask if you have any more questions.";
-            }
-            else if (lowerMessage.Contains("assignment") || lowerMessage.Contains("homework"))
-            {
-                response = "For assignments, I recommend breaking them down into smaller tasks and tackling them one at a time. Need help with a specific assignment?";
-            }
-            else if (lowerMessage.Contains("study") || lowerMessage.Contains("learn"))
-            {
-                response = "Effective studying involves active recall, spaced repetition, and practice. What subject are you studying?";
-            }
-            else
-            {
-                response = _dummyResponses[_random.Next(_dummyResponses.Length)];
-            }
+                // Remove loading and add AI response
+                _messages.Remove(loadingMessage);
+                AddAIMessage(response);
 
-            AddAIMessage(response);
+                // Save chat history to local storage
+                SaveChatHistory();
+            }
+            catch (Exception ex)
+            {
+                _messages.Remove(loadingMessage);
+                AddAIMessage($"Sorry, I encountered an error: {ex.Message}");
+            }
+            finally
+            {
+                _isLoading = false;
+            }
         }
 
         private void AddAIMessage(string message)

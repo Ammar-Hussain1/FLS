@@ -8,7 +8,7 @@ namespace FLS_API.DL
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
         public DbSet<User> Users { get; set; }
-        public DbSet<UserMemory> UserMemories { get; set; }
+        public DbSet<UserMemory> UserMemory { get; set; }
         public DbSet<ChatLog> ChatLogs { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

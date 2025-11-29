@@ -21,7 +21,10 @@ namespace FLS_API.Controllers
             if (string.IsNullOrEmpty(request.Message))
                 return BadRequest("Message cannot be empty.");
 
-            var response = await _chatbotService.ProcessMessageAsync(request.UserId, request.Message);
+            if (string.IsNullOrEmpty(request.ApiKey))
+                return BadRequest("API key is required.");
+
+            var response = await _chatbotService.ProcessMessageAsync(request.UserId, request.Message, request.ApiKey);
             return Ok(new ChatResponse { Response = response });
         }
     }
