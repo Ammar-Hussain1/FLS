@@ -4,56 +4,63 @@ using System.Text.Json.Serialization;
 
 namespace FLS_API.BL
 {
-    public class GeminiApiClient
+    public class OpenRouterApiClient
     {
         private readonly HttpClient _httpClient;
         private readonly string _apiKey;
-        private const string GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent";
+        private const string GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
+        // Using Groq's free Llama model - fast and reliable
+        private const string DEFAULT_MODEL = "llama-3.3-70b-versatile";
 
-        public GeminiApiClient(string apiKey)
+        public OpenRouterApiClient(string apiKey)
         {
             _apiKey = apiKey;
             _httpClient = new HttpClient();
         }
 
-        public async Task<GeminiResponse> GenerateContentAsync(string prompt, double temperature = 0.7)
+        public async Task<OpenRouterResponse> GenerateContentAsync(string prompt, double temperature = 0.7)
         {
             var requestBody = new
             {
-                contents = new[]
+                model = DEFAULT_MODEL,
+                messages = new[]
                 {
                     new
                     {
-                        parts = new[]
-                        {
-                            new { text = prompt }
-                        }
+                        role = "user",
+                        content = prompt
                     }
                 },
-                generationConfig = new
-                {
-                    temperature = temperature,
-                    maxOutputTokens = 2048
-                }
+                temperature = temperature,
+                max_tokens = 2048
             };
 
             var json = JsonSerializer.Serialize(requestBody);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-            var response = await _httpClient.PostAsync($"{GEMINI_API_URL}?key={_apiKey}", content);
-            response.EnsureSuccessStatusCode();
+            _httpClient.DefaultRequestHeaders.Clear();
+            _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_apiKey}");
 
-            var responseJson = await response.Content.ReadAsStringAsync();
-            var geminiResponse = JsonSerializer.Deserialize<GeminiApiResponse>(responseJson);
-
-            if (geminiResponse?.Candidates == null || geminiResponse.Candidates.Length == 0)
+            var response = await _httpClient.PostAsync(GROQ_API_URL, content);
+            
+            // Better error handling - capture the actual error message
+            if (!response.IsSuccessStatusCode)
             {
-                throw new Exception("No response from Gemini API");
+                var errorContent = await response.Content.ReadAsStringAsync();
+                throw new Exception($"Groq API error ({response.StatusCode}): {errorContent}");
             }
 
-            var responseText = geminiResponse.Candidates[0].Content.Parts[0].Text;
+            var responseJson = await response.Content.ReadAsStringAsync();
+            var groqResponse = JsonSerializer.Deserialize<OpenRouterApiResponse>(responseJson);
+
+            if (groqResponse?.Choices == null || groqResponse.Choices.Length == 0)
+            {
+                throw new Exception("No response from Groq API");
+            }
+
+            var responseText = groqResponse.Choices[0].Message.Content;
             
-            return new GeminiResponse
+            return new OpenRouterResponse
             {
                 Text = responseText,
                 MemoryUpdates = ParseMemoryUpdates(responseText),
@@ -97,9 +104,9 @@ namespace FLS_API.BL
             return updates;
         }
 
-        private List<int> ParseMemoryDeletions(string text)
+        private List<Guid> ParseMemoryDeletions(string text)
         {
-            var deletions = new List<int>();
+            var deletions = new List<Guid>();
             var lines = text.Split('\n');
 
             foreach (var line in lines)
@@ -107,7 +114,7 @@ namespace FLS_API.BL
                 if (line.Contains("[FORGET:"))
                 {
                     var idStr = ExtractBetween(line, "[FORGET:", "]");
-                    if (int.TryParse(idStr?.Trim(), out var id))
+                    if (Guid.TryParse(idStr?.Trim(), out var id))
                     {
                         deletions.Add(id);
                     }
@@ -141,12 +148,12 @@ namespace FLS_API.BL
     }
 
     // Response models
-    public class GeminiResponse
+    public class OpenRouterResponse
     {
         public string Text { get; set; } = string.Empty;
         public string CleanText { get; set; } = string.Empty;
         public List<MemoryUpdate> MemoryUpdates { get; set; } = new();
-        public List<int> MemoryDeletions { get; set; } = new();
+        public List<Guid> MemoryDeletions { get; set; } = new();
     }
 
     public class MemoryUpdate
@@ -156,28 +163,22 @@ namespace FLS_API.BL
         public string Category { get; set; } = string.Empty;
     }
 
-    // Gemini API response models
-    internal class GeminiApiResponse
+    // OpenAI-compatible API response models (works for Groq too)
+    internal class OpenRouterApiResponse
     {
-        [JsonPropertyName("candidates")]
-        public Candidate[]? Candidates { get; set; }
+        [JsonPropertyName("choices")]
+        public Choice[]? Choices { get; set; }
     }
 
-    internal class Candidate
+    internal class Choice
+    {
+        [JsonPropertyName("message")]
+        public Message Message { get; set; } = new();
+    }
+
+    internal class Message
     {
         [JsonPropertyName("content")]
-        public Content Content { get; set; } = new();
-    }
-
-    internal class Content
-    {
-        [JsonPropertyName("parts")]
-        public Part[] Parts { get; set; } = Array.Empty<Part>();
-    }
-
-    internal class Part
-    {
-        [JsonPropertyName("text")]
-        public string Text { get; set; } = string.Empty;
+        public string Content { get; set; } = string.Empty;
     }
 }

@@ -32,7 +32,7 @@
                               FontWeight="Bold"
                               Foreground="{StaticResource Primary}"
                               HorizontalAlignment="Center"/>
-                    <TextBlock Text="Configure your LLM API key to use the AI assistant"
+                    <TextBlock Text="Configure your Groq API key to use the AI assistant"
                               FontSize="13"
                               Foreground="{StaticResource TextDark}"
                               Opacity="0.7"
@@ -67,9 +67,9 @@
                       Opacity="0.6"
                       TextWrapping="Wrap"
                       Margin="0,0,0,15">
-                <Run Text="Don't have an API key? Get one from popular providers like"/>
+                <Run Text="Don't have an API key? Get one for free from Groq."/>
                 <LineBreak/>
-                <Run Text="OpenAI, Anthropic, or Google AI."/>
+                <Run Text="Groq provides fast, free AI inference."/>
             </TextBlock>
 
             <Border Grid.Row="3"
@@ -85,11 +85,11 @@
                         <Run Text="📚 Recommended:"/>
                     </TextBlock>
                     <TextBlock>
-                        <Hyperlink NavigateUri="https://platform.openai.com/api-keys"
+                        <Hyperlink NavigateUri="https://console.groq.com/keys"
                                   RequestNavigate="Hyperlink_RequestNavigate"
                                   Foreground="{StaticResource Accent}"
                                   TextDecorations="None">
-                            <Run Text="OpenAI API Keys - Get your API key here" FontSize="13"/>
+                            <Run Text="Groq API Keys - Get your free API key here" FontSize="13"/>
                         </Hyperlink>
                     </TextBlock>
                 </StackPanel>
