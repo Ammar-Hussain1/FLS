@@ -33,21 +33,50 @@ namespace FLS_API.BL
 
         public async Task<User> SignUpUserAsync(string fullName, string email, string password)
         {
-            var authResult = await _client.Auth.SignUp(email, password);
+            // Validate inputs
+            if (string.IsNullOrWhiteSpace(email))
+                throw new ArgumentException("Email cannot be null or empty.", nameof(email));
+            
+            if (string.IsNullOrWhiteSpace(password))
+                throw new ArgumentException("Password cannot be null or empty.", nameof(password));
+            
+            if (string.IsNullOrWhiteSpace(fullName))
+                throw new ArgumentException("Full name cannot be null or empty.", nameof(fullName));
 
-            if (authResult.User == null)
-                throw new Exception("Unable to create Supabase Auth user.");
-
-            // Insert into Users table
-            var user = new User
+            try
             {
-                FullName = fullName,
-                Email = email,
-                Role = "User",
-                CreatedAt = DateTime.UtcNow
-            };
-            await _client.From<User>().Insert(user);
-            return user;
+                // Sign up with Supabase Auth
+                var authResult = await _client.Auth.SignUp(email, password);
+
+                if (authResult.User == null)
+                {
+                    throw new Exception("Unable to create Supabase Auth user.");
+                }
+
+                // Insert into users table
+                var user = new User
+                {
+                    FullName = fullName.Trim(),
+                    Email = email,
+                    Role = "User"
+                };
+                
+                try
+                {
+                    await _client.From<User>().Insert(user);
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception(ex.Message, ex);
+                }
+                
+                return user;
+            }
+            catch (Exception ex)
+            {
+                // Re-throw with original error message
+                throw new Exception(ex.Message, ex);
+            }
         }
 
         public async Task<User?> SignInUserAsync(string email, string password)
@@ -62,10 +91,17 @@ namespace FLS_API.BL
 
         public async Task<User?> GetUserByEmailAsync(string email)
         {
-            var response = await _client.From<User>()
-                .Where(u => u.Email == email)
-                .Get();
-            return response.Models.FirstOrDefault();
+            try
+            {
+                var response = await _client.From<User>()
+                    .Where(u => u.Email == email)
+                    .Get();
+                return response.Models.FirstOrDefault();
+            }
+            catch
+            {
+                return null;
+            }
         }
 
         public async Task<List<User>> GetAllUsersAsync()
@@ -74,7 +110,7 @@ namespace FLS_API.BL
             return response.Models;
         }
 
-        public async Task<User?> UpdateUserAsync(int id, UsersDTO dto)
+        public async Task<User?> UpdateUserAsync(int id, UpdateUserDTO dto)
         {
             var existing = await _client.From<User>().Where(u => u.Id == id).Get();
             var user = existing.Models.FirstOrDefault();
