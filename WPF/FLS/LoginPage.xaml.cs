@@ -2,16 +2,22 @@
 using System.Globalization;
 using System.Windows;
 using System.Windows.Data;
+using System.Threading.Tasks;
 using FLS;
+using FLS.DL;
+using FLS.Models;
 
 namespace WpfLoginApp
 {
   
     public partial class LoginPage : Window
     {
+        private readonly ApiClient _apiClient;
+
         public LoginPage()
         {
             InitializeComponent();
+            _apiClient = new ApiClient();
         }
 
         private void SignUpButton_Click(object sender, RoutedEventArgs e) {
@@ -19,24 +25,72 @@ namespace WpfLoginApp
             signUpPage.Show();
         }
 
-        private void LoginButton_Click(object sender, RoutedEventArgs e) 
+        private async void LoginButton_Click(object sender, RoutedEventArgs e) 
         {
-            string username = UsernameTextBox.Text.Trim();
+            string email = UsernameTextBox.Text.Trim();
             string password = PasswordBox.Password;
 
-            // Check for admin credentials
-            if (username == "admin" && password == "123")
+            // Validate input
+            if (string.IsNullOrWhiteSpace(email))
             {
-                AdminDashboard adminDashboard = new AdminDashboard();
-                adminDashboard.Show();
-                this.Close();
+                MessageBox.Show("Please enter your email address.", "Validation Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
             }
-            else
+
+            if (string.IsNullOrWhiteSpace(password))
             {
-                // Regular user login
-                Dashboard dashboard = new Dashboard();
-                dashboard.Show();
-                this.Close();
+                MessageBox.Show("Please enter your password.", "Validation Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            // Disable login button during request
+            LoginButton.IsEnabled = false;
+            LoginButton.Content = "Logging in...";
+
+            try
+            {
+                var request = new SignInRequest
+                {
+                    Email = email,
+                    Password = password
+                };
+
+                var response = await _apiClient.SignInAsync(request);
+
+                if (response.Success && response.Data != null)
+                {
+                    // Store user info (you might want to create a UserSession helper)
+                    var user = response.Data;
+
+                    // Check if admin
+                    if (user.Role.Equals("admin", StringComparison.OrdinalIgnoreCase))
+                    {
+                        AdminDashboard adminDashboard = new AdminDashboard();
+                        adminDashboard.Show();
+                        this.Close();
+                    }
+                    else
+                    {
+                        Dashboard dashboard = new Dashboard();
+                        dashboard.Show();
+                        this.Close();
+                    }
+                }
+                else
+                {
+                    string errorMessage = response.Message ?? "Login failed. Please check your credentials and try again.";
+                    MessageBox.Show(errorMessage, "Login Failed", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"An error occurred: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            finally
+            {
+                // Re-enable login button
+                LoginButton.IsEnabled = true;
+                LoginButton.Content = "Login";
             }
         }
 

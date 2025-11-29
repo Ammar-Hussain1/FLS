@@ -4,6 +4,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using FLS.BL;
+using FLS.Models;
 
 namespace FLS.DL
 {
@@ -58,6 +59,82 @@ namespace FLS.DL
                 var errorContent = await response.Content.ReadAsStringAsync();
                 throw new HttpRequestException($"API returned {response.StatusCode}: {errorContent}");
             }
+        }
+
+        public async Task<ApiResponse<UserResponse>> SignInAsync(SignInRequest request)
+        {
+            var json = JsonSerializer.Serialize(request);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+            var response = await _httpClient.PostAsync($"{API_BASE_URL}/api/users/signin", content);
+            var responseJson = await response.Content.ReadAsStringAsync();
+
+            var options = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            };
+
+            try
+            {
+                // The API returns an ApiResponse wrapper
+                var apiResponse = JsonSerializer.Deserialize<ApiResponse<UserResponse>>(responseJson, options);
+                
+                if (apiResponse != null)
+                {
+                    return apiResponse;
+                }
+            }
+            catch
+            {
+                // If deserialization fails, try to parse as error
+            }
+
+            // Fallback: try to deserialize as error response
+            var errorResponse = JsonSerializer.Deserialize<ApiResponse<object>>(responseJson, options);
+            return new ApiResponse<UserResponse>
+            {
+                Success = false,
+                Message = errorResponse?.Message ?? $"Sign in failed: {response.StatusCode}",
+                ErrorCode = errorResponse?.ErrorCode
+            };
+        }
+
+        public async Task<ApiResponse<UserResponse>> SignUpAsync(SignUpRequest request)
+        {
+            var json = JsonSerializer.Serialize(request);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+            var response = await _httpClient.PostAsync($"{API_BASE_URL}/api/users/signup", content);
+            var responseJson = await response.Content.ReadAsStringAsync();
+
+            var options = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            };
+
+            try
+            {
+                // The API returns an ApiResponse wrapper
+                var apiResponse = JsonSerializer.Deserialize<ApiResponse<UserResponse>>(responseJson, options);
+                
+                if (apiResponse != null)
+                {
+                    return apiResponse;
+                }
+            }
+            catch
+            {
+                // If deserialization fails, try to parse as error
+            }
+
+            // Fallback: try to deserialize as error response
+            var errorResponse = JsonSerializer.Deserialize<ApiResponse<object>>(responseJson, options);
+            return new ApiResponse<UserResponse>
+            {
+                Success = false,
+                Message = errorResponse?.Message ?? $"Sign up failed: {response.StatusCode}",
+                ErrorCode = errorResponse?.ErrorCode
+            };
         }
     }
 }
