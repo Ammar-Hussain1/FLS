@@ -2,6 +2,8 @@
 using Microsoft.AspNetCore.Mvc;
 using FLS_API.BL;
 using FLS_API.DL.DTOs;
+using FLS_API.DTOs;
+using FLS_API.Utilities;
 
 namespace FLS_API.Controllers
 {
@@ -20,49 +22,28 @@ namespace FLS_API.Controllers
         public async Task<IActionResult> SignUp([FromBody] SignUpDTO signUpDto)
         {
             if (signUpDto == null)
-                return BadRequest("Request body is required.");
+                return ApiResponse.ErrorResponse("Request body is required.", "INVALID_REQUEST").ToActionResult();
 
             if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
-            // Validate that email is not null or empty
-            if (string.IsNullOrWhiteSpace(signUpDto.Email))
-                return BadRequest("Email is required.");
-
-            if (string.IsNullOrWhiteSpace(signUpDto.Password))
-                return BadRequest("Password is required.");
-
-            if (string.IsNullOrWhiteSpace(signUpDto.FullName))
-                return BadRequest("Full name is required.");
+                return ApiResponse.ErrorResponse("Invalid request data.", "VALIDATION_ERROR").ToActionResult();
 
             // Ensure we're using the actual email from the request, not any default value
-            var email = signUpDto.Email.Trim().ToLower();
-            var fullName = signUpDto.FullName.Trim();
-            var password = signUpDto.Password;
+            var email = signUpDto.Email?.Trim().ToLower() ?? string.Empty;
+            var fullName = signUpDto.FullName?.Trim() ?? string.Empty;
+            var password = signUpDto.Password ?? string.Empty;
 
-            try
-            {
-                var user = await _supabaseService.SignUpUserAsync(fullName, email, password);
-                return Ok(user);
-            }
-            catch (Exception ex)
-            {   
-                // Return a user-friendly error message
-                return BadRequest($"Error during signup: {ex.Message}");
-            }
+            var result = await _supabaseService.SignUpUserAsync(fullName, email, password);
+            return result.ToActionResult(StatusCodes.Status201Created);
         }
 
         [HttpPost("signin")]
         public async Task<IActionResult> SignIn([FromBody] SignInDTO signInDto)
         {
             if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+                return ApiResponse.ErrorResponse("Invalid request data.", "VALIDATION_ERROR").ToActionResult();
 
-            var user = await _supabaseService.SignInUserAsync(signInDto.Email, signInDto.Password);
-            if (user == null)
-                return Unauthorized("Invalid email or password.");
-
-            return Ok(user);
+            var result = await _supabaseService.SignInUserAsync(signInDto.Email, signInDto.Password);
+            return result.ToActionResult();
         }
 
         [HttpGet]
@@ -72,15 +53,25 @@ namespace FLS_API.Controllers
             return Ok(users);
         }
 
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetUserById(string id)
+        {
+            var user = await _supabaseService.GetUserByIdAsync(id);
+            if (user == null)
+            {
+                return ApiResponse.ErrorResponse("User not found.", "USER_NOT_FOUND").ToActionResult();
+            }
+            return ApiResponse.SuccessResponse(user).ToActionResult();
+        }
+
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateUser(int id, [FromBody] UpdateUserDTO dto)
+        public async Task<IActionResult> UpdateUser(string id, [FromBody] UpdateUserDTO dto)
         {
             if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+                return ApiResponse.ErrorResponse("Invalid request data.", "VALIDATION_ERROR").ToActionResult();
 
-            var user = await _supabaseService.UpdateUserAsync(id, dto);
-            if (user == null) return NotFound();
-            return Ok(user);
+            var result = await _supabaseService.UpdateUserAsync(id, dto);
+            return result.ToActionResult();
         }
 
     }
