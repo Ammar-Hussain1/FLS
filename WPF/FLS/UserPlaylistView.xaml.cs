@@ -192,6 +192,9 @@ namespace FLS
                 {
                     SelectedCourseText.Text = $"Community Playlists for {course.Name}";
                     
+                    // Clear search when switching courses
+                    SearchTextBox.Text = string.Empty;
+                    
                     var coursePlaylists = _allCommunityPlaylists
                         .Where(p => p.CourseId == courseId)
                         .ToList();
@@ -199,6 +202,28 @@ namespace FLS
                     PlaylistsControl.ItemsSource = coursePlaylists;
                 }
             }
+        }
+
+        private void SearchTextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (!_selectedCourseId.HasValue)
+                return;
+
+            var searchQuery = SearchTextBox.Text.Trim().ToLower();
+            
+            var coursePlaylists = _allCommunityPlaylists
+                .Where(p => p.CourseId == _selectedCourseId.Value)
+                .ToList();
+
+            if (!string.IsNullOrEmpty(searchQuery))
+            {
+                coursePlaylists = coursePlaylists
+                    .Where(p => p.Name.ToLower().Contains(searchQuery) || 
+                               p.Url.ToLower().Contains(searchQuery))
+                    .ToList();
+            }
+
+            PlaylistsControl.ItemsSource = coursePlaylists;
         }
 
         private void LikeButton_Click(object sender, RoutedEventArgs e)
