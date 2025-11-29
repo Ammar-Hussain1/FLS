@@ -44,11 +44,12 @@
                            HorizontalAlignment="Center"
                            Margin="0,0,0,34"/>
 
-                <TextBlock Text="Username"
+                <TextBlock Text="Full Name"
                            Foreground="{StaticResource Primary}"
                            FontSize="20"
                            Margin="0,0,0,8"/>
-                <TextBox FontSize="20"
+                <TextBox Name="FullNameTextBox"
+                         FontSize="20"
                          Background="{StaticResource Surface}"
                          BorderBrush="{StaticResource Accent}"
                          BorderThickness="2"
@@ -59,7 +60,8 @@
                            Foreground="{StaticResource Primary}"
                            FontSize="20"
                            Margin="0,0,0,8"/>
-                <TextBox FontSize="20"
+                <TextBox Name="EmailTextBox"
+                         FontSize="20"
                          Background="{StaticResource Surface}"
                          BorderBrush="{StaticResource Accent}"
                          BorderThickness="2"
@@ -70,7 +72,8 @@
                            Foreground="{StaticResource Primary}"
                            FontSize="20"
                            Margin="0,0,0,8"/>
-                <PasswordBox FontSize="20"
+                <PasswordBox Name="PasswordBox"
+                             FontSize="20"
                              Background="{StaticResource Surface}"
                              BorderBrush="{StaticResource Accent}"
                              BorderThickness="2"
@@ -81,7 +84,8 @@
                            Foreground="{StaticResource Primary}"
                            FontSize="20"
                            Margin="0,0,0,8"/>
-                <PasswordBox FontSize="20"
+                <PasswordBox Name="ConfirmPasswordBox"
+                             FontSize="20"
                              Background="{StaticResource Surface}"
                              BorderBrush="{StaticResource Accent}"
                              BorderThickness="2"
