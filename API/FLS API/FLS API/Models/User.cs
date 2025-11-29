@@ -8,11 +8,20 @@ namespace FLS_API.DL.Models
     [Table("users")]
     public class User : BaseModel
     {
-        [PrimaryKey("Id", false)]
-        public int Id { get; set; }
+        [PrimaryKey("id", false)]
+        [Column("id")]
+        public string Id { get; set; }
+        
+        [Column("full_name")]
         public string FullName { get; set; }
+        
+        [Column("email")]
         public string Email { get; set; }
+        
+        [Column("role")]
         public string Role { get; set; }
-        public DateTime CreatedAt { get; set; }
+
+        [Column("created_at")]
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
 }
