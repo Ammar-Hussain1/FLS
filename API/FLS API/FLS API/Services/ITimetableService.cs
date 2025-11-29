@@ -5,6 +5,6 @@ namespace FLS_API.BL
     public interface ITimetableService
     {
         Task ParseAndSaveTimetableAsync(Stream fileStream);
-        Task<List<TimetableEntry>> GetTimetableAsync();
+        Task<List<TimeTable>> GetTimetableAsync();
     }
 }
