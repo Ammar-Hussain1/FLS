@@ -4,4 +4,4 @@
 *.suo
 *.cache
 *.log
-./appsettings.json
+appsettings.json
