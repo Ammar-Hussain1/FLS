@@ -1,40 +1,35 @@
 using System.ComponentModel.DataAnnotations;
-using Microsoft.EntityFrameworkCore;
+using Supabase.Postgrest.Attributes;
+using Supabase.Postgrest.Models;
 
 namespace FLS_API.DL.Models
 {
-    [Index(nameof(UserId), nameof(Importance))]
-    [Index(nameof(UserId), nameof(CreatedAt))]
-    public class UserMemory
+    [Table("user_memory")]
+    public class UserMemory : BaseModel
     {
+        [PrimaryKey("id", false)]
         public int Id { get; set; }
-        public int UserId { get; set; }
-        public User User { get; set; } = null!;
         
-        /// <summary>
-        /// Free-form memory content (e.g., "User loves playing guitar", "User struggles with calculus")
-        /// </summary>
+        [Column("user_id")]
+        public int UserId { get; set; }
+        
         [Required]
+        [Column("content")]
         public string Content { get; set; } = string.Empty;
         
-        /// <summary>
-        /// AI-assigned importance score (1-10)
-        /// Higher scores = more important to remember
-        /// </summary>
+        [Column("importance")]
         public int Importance { get; set; } = 5;
         
-        /// <summary>
-        /// Memory category for organization
-        /// Examples: "personal", "academic", "preferences", "goals"
-        /// </summary>
+        [Column("category")]
         public string Category { get; set; } = "general";
         
-        /// <summary>
-        /// Whether this is a summary of multiple older memories
-        /// </summary>
+        [Column("is_summary")]
         public bool IsSummary { get; set; } = false;
         
+        [Column("created_at")]
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        
+        [Column("last_accessed_at")]
         public DateTime? LastAccessedAt { get; set; }
     }
 }
