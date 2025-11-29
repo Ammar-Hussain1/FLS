@@ -117,12 +117,6 @@
                                                 Grid.ColumnSpan="2"
                                                 Orientation="Horizontal">
                                         <TextBlock FontSize="14"
-                                                   Foreground="{StaticResource Primary}"
-                                                   Margin="0,0,20,0">
-                                            <Run Text="Credits: " FontWeight="SemiBold"/>
-                                            <Run Text="{Binding Course.Credits}"/>
-                                        </TextBlock>
-                                        <TextBlock FontSize="14"
                                                    Foreground="{StaticResource Primary}">
                                             <Run Text="Enrolled: " FontWeight="SemiBold"/>
                                             <Run Text="{Binding EnrolledDate, StringFormat='{}{0:MMM dd, yyyy}'}"/>

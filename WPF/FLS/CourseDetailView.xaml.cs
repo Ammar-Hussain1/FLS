@@ -36,10 +36,9 @@ namespace FLS
             _course = course;
             CourseNameText.Text = _course.Name;
             CourseCodeText.Text = _course.Code;
-            CreditsText.Text = _course.Credits.ToString();
             
-            // Try to get course ID from course object or set from Id
-            _courseId = course.Id.ToString();
+            // Course.Id is already a string (UUID), use it directly
+            _courseId = course.Id;
         }
 
         public void SetCourseId(string courseId)
@@ -60,11 +59,28 @@ namespace FLS
                 var response = await _apiClient.GetCourseMaterialsAsync(_courseId);
                 if (response.Success && response.Data != null)
                 {
-                    OrganizeMaterialsByCategory(response.Data.MaterialsByCategory);
+                    // Check if we have any materials
+                    if (response.Data.MaterialsByCategory != null && response.Data.MaterialsByCategory.Count > 0)
+                    {
+                        OrganizeMaterialsByCategory(response.Data.MaterialsByCategory);
+                    }
+                    else
+                    {
+                        InitializeEmptyMaterialLists();
+                    }
                 }
                 else
                 {
                     InitializeEmptyMaterialLists();
+                    if (!string.IsNullOrWhiteSpace(response?.Message))
+                    {
+                        // Don't show error message if it's just "no materials found" - that's expected
+                        if (!response.Message.Contains("not found", StringComparison.OrdinalIgnoreCase))
+                        {
+                            MessageBox.Show($"Error loading course materials: {response.Message}", "Error",
+                                MessageBoxButton.OK, MessageBoxImage.Warning);
+                        }
+                    }
                 }
             }
             catch (Exception ex)
@@ -118,23 +134,28 @@ namespace FLS
                     .Select(m => CourseMaterial.FromDTO(m))
                     .ToList();
 
-                switch (category.Key.ToLowerInvariant())
+                // Use case-insensitive comparison
+                var categoryLower = category.Key.ToLowerInvariant().Trim();
+                
+                if (categoryLower == "quizzes")
                 {
-                    case "quizzes":
-                        _quizzes = materials;
-                        break;
-                    case "assignments":
-                        _assignments = materials;
-                        break;
-                    case "Midterm 1":
-                        _mid1 = materials;
-                        break;
-                    case "Midterm 2":
-                        _mid2 = materials;
-                        break;
-                    case "Final":
-                        _finalExam = materials;
-                        break;
+                    _quizzes = materials;
+                }
+                else if (categoryLower == "assignments")
+                {
+                    _assignments = materials;
+                }
+                else if (categoryLower == "midterm 1" || categoryLower == "midterm1")
+                {
+                    _mid1 = materials;
+                }
+                else if (categoryLower == "midterm 2" || categoryLower == "midterm2")
+                {
+                    _mid2 = materials;
+                }
+                else if (categoryLower == "final" || categoryLower == "final exam")
+                {
+                    _finalExam = materials;
                 }
             }
 

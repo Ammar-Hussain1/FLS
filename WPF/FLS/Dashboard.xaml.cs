@@ -100,7 +100,7 @@ namespace FLS
             UpdateTabSelection(SavedCoursesTab);
         }
 
-        public void RemoveFromSavedCourses(int courseId)
+        public void RemoveFromSavedCourses(string courseId)
         {
             if (_allCoursesView != null)
             {
@@ -138,7 +138,6 @@ namespace FLS
                 _courseMaterialSubmissionView = new CourseMaterialSubmissionView();
             }
 
-            // Sync courses from AllCoursesView if available
             if (_allCoursesView != null)
             {
                 var courses = _allCoursesView.GetCourses();

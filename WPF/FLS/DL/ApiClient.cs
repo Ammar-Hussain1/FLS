@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
@@ -325,11 +326,47 @@ namespace FLS.DL
 
             try
             {
-                var apiResponse = JsonSerializer.Deserialize<ApiResponse<List<MaterialRequest>>>(responseJson, options);
-                return apiResponse ?? new ApiResponse<List<MaterialRequest>>
+                var apiResponse = JsonSerializer.Deserialize<ApiResponse<List<MaterialResponseDTO>>>(responseJson, options);
+                
+                if (apiResponse == null)
                 {
-                    Success = false,
-                    Message = "Failed to deserialize response"
+                    return new ApiResponse<List<MaterialRequest>>
+                    {
+                        Success = false,
+                        Message = "Failed to deserialize response"
+                    };
+                }
+
+                if (!apiResponse.Success || apiResponse.Data == null)
+                {
+                    return new ApiResponse<List<MaterialRequest>>
+                    {
+                        Success = apiResponse.Success,
+                        Message = apiResponse.Message,
+                        ErrorCode = apiResponse.ErrorCode,
+                        Data = new List<MaterialRequest>()
+                    };
+                }
+
+                // Convert MaterialResponseDTO to MaterialRequest
+                var materialRequests = apiResponse.Data.Select(dto => new MaterialRequest
+                {
+                    Id = dto.Id,
+                    CourseId = dto.CourseId,
+                    CourseName = dto.CourseName,
+                    Title = dto.Title,
+                    Category = dto.Category,
+                    FilePath = dto.FilePath,
+                    Year = dto.Year,
+                    Status = dto.Status,
+                    UploadedAt = dto.UploadedAt
+                }).ToList();
+
+                return new ApiResponse<List<MaterialRequest>>
+                {
+                    Success = true,
+                    Data = materialRequests,
+                    Message = apiResponse.Message
                 };
             }
             catch (Exception ex)
@@ -354,11 +391,48 @@ namespace FLS.DL
 
             try
             {
-                var apiResponse = JsonSerializer.Deserialize<ApiResponse<List<MaterialRequest>>>(responseJson, options);
-                return apiResponse ?? new ApiResponse<List<MaterialRequest>>
+                // Deserialize as MaterialResponseDTO first (what API actually returns)
+                var apiResponse = JsonSerializer.Deserialize<ApiResponse<List<MaterialResponseDTO>>>(responseJson, options);
+                
+                if (apiResponse == null)
                 {
-                    Success = false,
-                    Message = "Failed to deserialize response"
+                    return new ApiResponse<List<MaterialRequest>>
+                    {
+                        Success = false,
+                        Message = "Failed to deserialize response"
+                    };
+                }
+
+                if (!apiResponse.Success || apiResponse.Data == null)
+                {
+                    return new ApiResponse<List<MaterialRequest>>
+                    {
+                        Success = apiResponse.Success,
+                        Message = apiResponse.Message,
+                        ErrorCode = apiResponse.ErrorCode,
+                        Data = new List<MaterialRequest>()
+                    };
+                }
+
+                // Convert MaterialResponseDTO to MaterialRequest
+                var materialRequests = apiResponse.Data.Select(dto => new MaterialRequest
+                {
+                    Id = dto.Id,
+                    CourseId = dto.CourseId,
+                    CourseName = dto.CourseName,
+                    Title = dto.Title,
+                    Category = dto.Category,
+                    FilePath = dto.FilePath,
+                    Year = dto.Year,
+                    Status = dto.Status,
+                    UploadedAt = dto.UploadedAt
+                }).ToList();
+
+                return new ApiResponse<List<MaterialRequest>>
+                {
+                    Success = true,
+                    Data = materialRequests,
+                    Message = apiResponse.Message
                 };
             }
             catch (Exception ex)
@@ -425,6 +499,58 @@ namespace FLS.DL
                 {
                     Success = false,
                     Message = $"Failed to reject request: {ex.Message}"
+                };
+            }
+        }
+
+        public async Task<ApiResponse<PaginatedResponse<CourseDTO>>> GetCoursesAsync(int page = 1, int pageSize = 10, string? search = null)
+        {
+            var queryParams = new List<string>
+            {
+                $"page={page}",
+                $"pageSize={pageSize}"
+            };
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                queryParams.Add($"search={Uri.EscapeDataString(search)}");
+            }
+
+            var url = $"{API_BASE_URL}/api/Courses?{string.Join("&", queryParams)}";
+            var response = await _httpClient.GetAsync(url);
+            var responseJson = await response.Content.ReadAsStringAsync();
+
+            var options = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            };
+
+            try
+            {
+                if (response.IsSuccessStatusCode)
+                {
+                    var paginatedResponse = JsonSerializer.Deserialize<PaginatedResponse<CourseDTO>>(responseJson, options);
+                    return new ApiResponse<PaginatedResponse<CourseDTO>>
+                    {
+                        Success = true,
+                        Data = paginatedResponse
+                    };
+                }
+                else
+                {
+                    return new ApiResponse<PaginatedResponse<CourseDTO>>
+                    {
+                        Success = false,
+                        Message = $"API returned {response.StatusCode}: {responseJson}"
+                    };
+                }
+            }
+            catch (Exception ex)
+            {
+                return new ApiResponse<PaginatedResponse<CourseDTO>>
+                {
+                    Success = false,
+                    Message = $"Failed to get courses: {ex.Message}"
                 };
             }
         }
