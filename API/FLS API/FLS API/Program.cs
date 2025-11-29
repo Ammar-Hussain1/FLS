@@ -7,12 +7,20 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 
 builder.Services.AddControllers();
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Using real ChatbotService (will work once Supabase is configured)
+// Configure Supabase
+var supabaseUrl = builder.Configuration["Supabase:Url"];
+var supabaseKey = builder.Configuration["Supabase:Key"];
+var supabaseOptions = new FLS_API.Models.SupabaseOptions
+{
+    Url = supabaseUrl,
+    ServiceRoleKey = supabaseKey
+};
+builder.Services.AddSingleton(supabaseOptions);
+builder.Services.AddScoped<SupabaseService>();
+
+// Using real ChatbotService
 builder.Services.AddScoped<IChatbotService, ChatbotService>();
-// For testing without DB, use: builder.Services.AddScoped<IChatbotService, MockChatbotService>();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();

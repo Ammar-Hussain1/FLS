@@ -2,15 +2,29 @@
 .vs/
 *.user
 *.suo
+*.userosscache
+*.sln.docstates
 
-# Build files
-bin/
-obj/
+# Build results
+[Bb]in/
+[Oo]bj/
 
 # WPF generated files
 *.g.cs
 *.g.i.cs
 
+# Config files
+appsettings.json
+API/FLS API/FLS API/appsettings.json
+**/appsettings.json
+**/appsettings.Development.json
+
 # System files
 Thumbs.db
 *.cache
+.DS_Store
+
+# Temporary files
+*.log
+build_output*.txt
+timetable_structure.txt
