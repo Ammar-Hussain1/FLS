@@ -17,21 +17,52 @@ namespace FLS_API.Controllers
         }
 
         [HttpPost("signup")]
-        public async Task<IActionResult> SignUp([FromBody] UsersDTO userDto)
+        public async Task<IActionResult> SignUp([FromBody] SignUpDTO signUpDto)
         {
-            var existing = await _supabaseService.GetUserByEmailAsync(userDto.Email);
-            if (existing != null)
-                return BadRequest("User already exists.");
+            if (signUpDto == null)
+                return BadRequest("Request body is required.");
 
-            var user = await _supabaseService.SignUpUserAsync(userDto.FullName, userDto.Email, userDto.Password);
-            return Ok(user);
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            // Validate that email is not null or empty
+            if (string.IsNullOrWhiteSpace(signUpDto.Email))
+                return BadRequest("Email is required.");
+
+            if (string.IsNullOrWhiteSpace(signUpDto.Password))
+                return BadRequest("Password is required.");
+
+            if (string.IsNullOrWhiteSpace(signUpDto.FullName))
+                return BadRequest("Full name is required.");
+
+            // Ensure we're using the actual email from the request, not any default value
+            var email = signUpDto.Email.Trim().ToLower();
+            var fullName = signUpDto.FullName.Trim();
+            var password = signUpDto.Password;
+
+            try
+            {
+                var user = await _supabaseService.SignUpUserAsync(fullName, email, password);
+                return Ok(user);
+            }
+            catch (Exception ex)
+            {   
+                // Return a user-friendly error message
+                return BadRequest($"Error during signup: {ex.Message}");
+            }
         }
 
         [HttpPost("signin")]
-        public async Task<IActionResult> SignIn([FromBody] UsersDTO userDto)
+        public async Task<IActionResult> SignIn([FromBody] SignInDTO signInDto)
         {
-            await _supabaseService.SignInUserAsync(userDto.Email, userDto.Password);
-            return Ok("Magic link sent to email.");
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var user = await _supabaseService.SignInUserAsync(signInDto.Email, signInDto.Password);
+            if (user == null)
+                return Unauthorized("Invalid email or password.");
+
+            return Ok(user);
         }
 
         [HttpGet]
@@ -42,8 +73,11 @@ namespace FLS_API.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateUser(int id, [FromBody] UsersDTO dto)
+        public async Task<IActionResult> UpdateUser(int id, [FromBody] UpdateUserDTO dto)
         {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
             var user = await _supabaseService.UpdateUserAsync(id, dto);
             if (user == null) return NotFound();
             return Ok(user);
