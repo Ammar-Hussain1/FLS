@@ -4,17 +4,17 @@
 winexe
 C#
 .cs
-D:\Advance Programming\FAST-LEARNING-SYSTEM\FLS\WPF\FLS\obj\Debug\net8.0-windows\
+D:\Fast Nuces\Semester-5\Advance Programming\FLS\WPF\FLS\obj\Debug\net8.0-windows\
 FLS
 none
 false
 TRACE;DEBUG;NET;NET8_0;NETCOREAPP;WINDOWS;WINDOWS7_0;NET5_0_OR_GREATER;NET6_0_OR_GREATER;NET7_0_OR_GREATER;NET8_0_OR_GREATER;NETCOREAPP3_0_OR_GREATER;NETCOREAPP3_1_OR_GREATER;WINDOWS7_0_OR_GREATER
-D:\Advance Programming\FAST-LEARNING-SYSTEM\FLS\WPF\FLS\App.xaml
+D:\Fast Nuces\Semester-5\Advance Programming\FLS\WPF\FLS\App.xaml
 19-1121884507
-3-501004955
+3346191271
 35899399585
-201-691347500
+2011897920638
 AddCourseDialog.xaml;AdminDashboard.xaml;AllCoursesView.xaml;ApiKeyDialog.xaml;ChatView.xaml;CourseDetailView.xaml;CourseManagementView.xaml;CourseMaterialSubmissionView.xaml;CoursesPage.xaml;Dashboard.xaml;LoginPage.xaml;MaterialRequestsView.xaml;PdfViewerWindow.xaml;PlaylistRequestsAdminView.xaml;SavedCoursesView.xaml;SectionInputDialog.xaml;SignUpPage.xaml;TimetableView.xaml;UserPlaylistView.xaml;
 
-False
+True
 

@@ -1,16 +1,18 @@
 using System.ComponentModel.DataAnnotations;
+using Supabase.Postgrest.Attributes;
+using Supabase.Postgrest.Models;
 
 namespace FLS_API.DL.Models
 {
-    public class User
+
+    [Table("Users")]
+    public class User : BaseModel
     {
+        [PrimaryKey("Id", false)]
         public int Id { get; set; }
-        [Required]
-        public string Username { get; set; } = string.Empty;
-        public string Role { get; set; } = "User"; // "Admin" or "User"
-        public string PasswordHash { get; set; } = string.Empty;
-        
-        public List<UserMemory> Memories { get; set; } = new();
-        public List<ChatLog> ChatLogs { get; set; } = new();
+        public string FullName { get; set; }
+        public string Email { get; set; }
+        public string Role { get; set; }
+        public DateTime CreatedAt { get; set; }
     }
 }
