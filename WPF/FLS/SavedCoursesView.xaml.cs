@@ -1,3 +1,4 @@
+using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
@@ -10,6 +11,11 @@ namespace FLS
     {
         private ObservableCollection<UserCourse> _savedCourses;
         private Dashboard _parentDashboard;
+        
+        // Pagination fields
+        private int _currentPage = 1;
+        private int _pageSize = 10;
+        private int _totalPages = 1;
 
         public event Action<Models.Course> CourseSelected;
 
@@ -17,7 +23,6 @@ namespace FLS
         {
             InitializeComponent();
             _savedCourses = new ObservableCollection<UserCourse>();
-            SavedCoursesItemsControl.ItemsSource = _savedCourses;
             LoadSavedCourses();
         }
 
@@ -41,7 +46,7 @@ namespace FLS
 
         private void LoadSavedCourses()
         {
-            UpdateEmptyState();
+            UpdatePagination();
         }
 
         public void SetSavedCourses(ObservableCollection<UserCourse> savedCourses)
@@ -51,7 +56,8 @@ namespace FLS
             {
                 _savedCourses.Add(userCourse);
             }
-            UpdateEmptyState();
+            _currentPage = 1;
+            UpdatePagination();
         }
 
         private void RemoveCourseButton_Click(object sender, RoutedEventArgs e)
@@ -78,15 +84,46 @@ namespace FLS
                         }
                         
                         MessageBox.Show("Course removed from saved courses!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
-                        UpdateEmptyState();
+                        UpdatePagination();
                     }
                 }
             }
         }
 
-        private void UpdateEmptyState()
+        
+        private void UpdatePagination()
         {
+            _totalPages = _savedCourses.Count > 0 ? (int)Math.Ceiling((double)_savedCourses.Count / _pageSize) : 1;
+            if (_currentPage > _totalPages) _currentPage = _totalPages;
+            if (_currentPage < 1) _currentPage = 1;
+            
+            var skip = (_currentPage - 1) * _pageSize;
+            var pageItems = _savedCourses.Skip(skip).Take(_pageSize).ToList();
+            
+            SavedCoursesItemsControl.ItemsSource = pageItems;
+            PageInfoText.Text = $"Page {_currentPage} of {_totalPages}";
+            PrevPageButton.IsEnabled = _currentPage > 1;
+            NextPageButton.IsEnabled = _currentPage < _totalPages;
+            
             EmptyStateText.Visibility = _savedCourses.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+        }
+        
+        private void PrevPage_Click(object sender, RoutedEventArgs e)
+        {
+            if (_currentPage > 1)
+            {
+                _currentPage--;
+                UpdatePagination();
+            }
+        }
+        
+        private void NextPage_Click(object sender, RoutedEventArgs e)
+        {
+            if (_currentPage < _totalPages)
+            {
+                _currentPage++;
+                UpdatePagination();
+            }
         }
     }
 }

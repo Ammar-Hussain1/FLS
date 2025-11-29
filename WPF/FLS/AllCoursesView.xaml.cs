@@ -17,6 +17,12 @@ namespace FLS
         private CollectionViewSource _coursesViewSource;
         private int _nextCourseId = 1;
         private int _nextUserCourseId = 1;
+        
+        // Pagination fields
+        private int _currentPage = 1;
+        private int _pageSize = 10;
+        private int _totalPages = 1;
+        private List<Course> _filteredCourses = new List<Course>();
 
         public event Action<ObservableCollection<UserCourse>> SavedCoursesChanged;
         public event Action<Models.Course> CourseSelected;
@@ -33,7 +39,6 @@ namespace FLS
             _coursesViewSource.Source = _courses;
             _coursesViewSource.Filter += CoursesViewSource_Filter;
             
-            CoursesItemsControl.ItemsSource = _coursesViewSource.View;
             LoadCourses();
         }
 
@@ -96,7 +101,7 @@ namespace FLS
                 }
             }
 
-            UpdateEmptyState();
+            UpdatePagination();
         }
 
         private void AddCourseButton_Click(object sender, RoutedEventArgs e)
@@ -141,7 +146,8 @@ namespace FLS
             AddCourseForm.Visibility = Visibility.Collapsed;
             ClearForm();
             _coursesViewSource.View.Refresh();
-            UpdateEmptyState();
+            _currentPage = 1;
+            UpdatePagination();
         }
 
         private void SaveCourseButton_Click(object sender, RoutedEventArgs e)
@@ -209,20 +215,37 @@ namespace FLS
             CourseCreditsTextBox.Clear();
         }
 
-        private void UpdateEmptyState()
+        private void UpdatePagination()
         {
-            int filteredCount = 0;
+            // Get filtered courses
+            _filteredCourses.Clear();
             if (_coursesViewSource?.View != null)
             {
-                foreach (var item in _coursesViewSource.View)
+                foreach (Course course in _coursesViewSource.View)
                 {
-                    filteredCount++;
+                    _filteredCourses.Add(course);
                 }
             }
             
-            EmptyStateText.Visibility = filteredCount == 0 ? Visibility.Visible : Visibility.Collapsed;
+            // Calculate pagination
+            _totalPages = _filteredCourses.Count > 0 ? (int)Math.Ceiling((double)_filteredCourses.Count / _pageSize) : 1;
+            if (_currentPage > _totalPages) _currentPage = _totalPages;
+            if (_currentPage < 1) _currentPage = 1;
             
-            if (!string.IsNullOrWhiteSpace(SearchTextBox?.Text) && filteredCount == 0 && _courses.Count > 0)
+            // Get page items
+            var skip = (_currentPage - 1) * _pageSize;
+            var pageItems = _filteredCourses.Skip(skip).Take(_pageSize).ToList();
+            
+            // Update UI
+            CoursesItemsControl.ItemsSource = pageItems;
+            PageInfoText.Text = $"Page {_currentPage} of {_totalPages}";
+            PrevPageButton.IsEnabled = _currentPage > 1;
+            NextPageButton.IsEnabled = _currentPage < _totalPages;
+            
+            // Update empty state
+            EmptyStateText.Visibility = _filteredCourses.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+            
+            if (!string.IsNullOrWhiteSpace(SearchTextBox?.Text) && _filteredCourses.Count == 0 && _courses.Count > 0)
             {
                 EmptyStateText.Text = "No courses found matching your search.";
             }
@@ -230,9 +253,23 @@ namespace FLS
             {
                 EmptyStateText.Text = "No courses available. Click 'Add Course' to get started!";
             }
-            else
+        }
+        
+        private void PrevPage_Click(object sender, RoutedEventArgs e)
+        {
+            if (_currentPage > 1)
             {
-                EmptyStateText.Text = "No courses available. Click 'Add Course' to get started!";
+                _currentPage--;
+                UpdatePagination();
+            }
+        }
+        
+        private void NextPage_Click(object sender, RoutedEventArgs e)
+        {
+            if (_currentPage < _totalPages)
+            {
+                _currentPage++;
+                UpdatePagination();
             }
         }
 
@@ -241,7 +278,8 @@ namespace FLS
             if (_coursesViewSource != null)
             {
                 _coursesViewSource.View.Refresh();
-                UpdateEmptyState();
+                _currentPage = 1;
+                UpdatePagination();
             }
             
             ClearSearchButton.Visibility = string.IsNullOrWhiteSpace(SearchTextBox.Text) 
