@@ -2,8 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using FLS.DL;
 using FLS.Models;
 
 namespace FLS
@@ -11,6 +14,8 @@ namespace FLS
     public partial class CourseDetailView : UserControl
     {
         private Course _course;
+        private string _courseId = string.Empty;
+        private readonly ApiClient _apiClient;
 
         // Data Collections
         private List<CourseMaterial> _quizzes;
@@ -23,13 +28,133 @@ namespace FLS
         public CourseDetailView()
         {
             InitializeComponent();
+            _apiClient = new ApiClient();
         }
+
         public void SetCourse(Course course)
         {
             _course = course;
             CourseNameText.Text = _course.Name;
             CourseCodeText.Text = _course.Code;
             CreditsText.Text = _course.Credits.ToString();
+            
+            // Try to get course ID from course object or set from Id
+            _courseId = course.Id.ToString();
+        }
+
+        public void SetCourseId(string courseId)
+        {
+            _courseId = courseId;
+        }
+
+        public async Task LoadCourseMaterialsAsync()
+        {
+            if (string.IsNullOrWhiteSpace(_courseId))
+            {
+                await LoadCourseMaterialsByNameAsync();
+                return;
+            }
+
+            try
+            {
+                var response = await _apiClient.GetCourseMaterialsAsync(_courseId);
+                if (response.Success && response.Data != null)
+                {
+                    OrganizeMaterialsByCategory(response.Data.MaterialsByCategory);
+                }
+                else
+                {
+                    InitializeEmptyMaterialLists();
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error loading course materials: {ex.Message}", "Error",
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
+                InitializeEmptyMaterialLists();
+            }
+        }
+
+        private async Task LoadCourseMaterialsByNameAsync()
+        {
+            try
+            {
+                var userId = Helpers.AppSettings.GetCurrentUserId();
+                if (!string.IsNullOrWhiteSpace(userId))
+                {
+                    var coursesResponse = await _apiClient.GetMyCoursesAsync(userId);
+                    if (coursesResponse.Success && coursesResponse.Data != null)
+                    {
+                        var course = coursesResponse.Data.FirstOrDefault(c => 
+                            c.CourseName == _course.Name || c.CourseCode == _course.Code);
+                        if (course != null)
+                        {
+                            _courseId = course.CourseId;
+                            await LoadCourseMaterialsAsync();
+                            return;
+                        }
+                    }
+                }
+            }
+            catch
+            {
+            }
+
+            InitializeEmptyMaterialLists();
+        }
+
+        private void OrganizeMaterialsByCategory(Dictionary<string, List<MaterialResponseDTO>> materialsByCategory)
+        {
+            _quizzes = new List<CourseMaterial>();
+            _assignments = new List<CourseMaterial>();
+            _mid1 = new List<CourseMaterial>();
+            _mid2 = new List<CourseMaterial>();
+            _finalExam = new List<CourseMaterial>();
+
+            foreach (var category in materialsByCategory)
+            {
+                var materials = category.Value
+                    .Where(m => m.Status == "Approved")
+                    .Select(m => CourseMaterial.FromDTO(m))
+                    .ToList();
+
+                switch (category.Key.ToLowerInvariant())
+                {
+                    case "quizzes":
+                        _quizzes = materials;
+                        break;
+                    case "assignments":
+                        _assignments = materials;
+                        break;
+                    case "Midterm 1":
+                        _mid1 = materials;
+                        break;
+                    case "Midterm 2":
+                        _mid2 = materials;
+                        break;
+                    case "Final":
+                        _finalExam = materials;
+                        break;
+                }
+            }
+
+            if (_playlists == null)
+            {
+                _playlists = new List<Playlist>();
+            }
+        }
+
+        private void InitializeEmptyMaterialLists()
+        {
+            _quizzes = new List<CourseMaterial>();
+            _assignments = new List<CourseMaterial>();
+            _mid1 = new List<CourseMaterial>();
+            _mid2 = new List<CourseMaterial>();
+            _finalExam = new List<CourseMaterial>();
+            if (_playlists == null)
+            {
+                _playlists = new List<Playlist>();
+            }
         }
 
         public void LoadDummyData()

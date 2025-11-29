@@ -1,8 +1,12 @@
 using System;
 using System.Collections.ObjectModel;
 using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using FLS.DL;
+using FLS.Helpers;
 using FLS.Models;
 using Microsoft.Web.WebView2.Core;
 
@@ -14,12 +18,13 @@ namespace FLS
         private Course _selectedCourse;
         private MaterialType _selectedMaterialType;
         private string _selectedFilePath = string.Empty;
-        private int _nextSubmissionId = 1;
+        private readonly ApiClient _apiClient;
 
         public CourseMaterialSubmissionView()
         {
             InitializeComponent();
             _courses = new ObservableCollection<Course>();
+            _apiClient = new ApiClient();
             LoadCourses();
             InitializeMaterialTypeComboBox();
             Loaded += CourseMaterialSubmissionView_Loaded;
@@ -37,68 +42,49 @@ namespace FLS
             }
         }
 
-        private void LoadCourses()
+        private async void LoadCourses()
         {
-            // Load courses from AllCoursesView or API
-            // For now, using dummy data similar to AllCoursesView
-            if (_courses.Count == 0)
+            var userId = AppSettings.GetCurrentUserId();
+            if (string.IsNullOrWhiteSpace(userId))
             {
-                var dummyCourses = new[]
-                {
-                    new Course
-                    {
-                        Id = 1,
-                        Name = "Introduction to Programming",
-                        Code = "CS101",
-                        Description = "Fundamentals of programming and problem-solving",
-                        Credits = 3,
-                        CreatedDate = DateTime.Now.AddDays(-30)
-                    },
-                    new Course
-                    {
-                        Id = 2,
-                        Name = "Data Structures and Algorithms",
-                        Code = "CS201",
-                        Description = "Advanced data structures and algorithm design",
-                        Credits = 4,
-                        CreatedDate = DateTime.Now.AddDays(-20)
-                    },
-                    new Course
-                    {
-                        Id = 3,
-                        Name = "Database Systems",
-                        Code = "CS301",
-                        Description = "Design and implementation of database systems",
-                        Credits = 3,
-                        CreatedDate = DateTime.Now.AddDays(-10)
-                    },
-                    new Course
-                    {
-                        Id = 4,
-                        Name = "Web Development",
-                        Code = "CS401",
-                        Description = "Modern web development with HTML, CSS, and JavaScript",
-                        Credits = 3,
-                        CreatedDate = DateTime.Now.AddDays(-5)
-                    },
-                    new Course
-                    {
-                        Id = 5,
-                        Name = "Machine Learning",
-                        Code = "CS501",
-                        Description = "Introduction to machine learning algorithms and applications",
-                        Credits = 4,
-                        CreatedDate = DateTime.Now.AddDays(-2)
-                    }
-                };
-
-                foreach (var course in dummyCourses)
-                {
-                    _courses.Add(course);
-                }
+                ShowStatusMessage("Please log in to submit materials.", false);
+                return;
             }
 
-            CourseComboBox.ItemsSource = _courses;
+            try
+            {
+                var response = await _apiClient.GetMyCoursesAsync(userId);
+                if (response.Success && response.Data != null)
+                {
+                    _courses.Clear();
+                    foreach (var userCourse in response.Data)
+                    {
+                        _courses.Add(new Course
+                        {
+                            Id = int.TryParse(userCourse.CourseId, out var id) ? id : 0,
+                            Name = userCourse.CourseName,
+                            Code = userCourse.CourseCode,
+                            Description = userCourse.Description ?? string.Empty,
+                            Credits = 0,
+                            CreatedDate = DateTime.Now
+                        });
+                    }
+                    CourseComboBox.ItemsSource = _courses;
+                    
+                    if (_courses.Count == 0)
+                    {
+                        ShowStatusMessage("No courses found. Please enroll in a course first.", false);
+                    }
+                }
+                else
+                {
+                    ShowStatusMessage(response.Message ?? "Failed to load courses.", false);
+                }
+            }
+            catch (Exception ex)
+            {
+                ShowStatusMessage($"Error loading courses: {ex.Message}", false);
+            }
         }
 
         private void InitializeMaterialTypeComboBox()
@@ -178,7 +164,6 @@ namespace FLS
                     NoPreviewPanel.Visibility = Visibility.Visible;
                 }
 
-                // Update file info panel in form
                 FileNameText.Text = $"File: {Path.GetFileName(filePath)}";
                 FileSizeText.Text = $"Size: {fileSize} | Type: PDF";
                 FileInfoPanel.Visibility = Visibility.Visible;
@@ -207,7 +192,7 @@ namespace FLS
             return $"{len:0.##} {sizes[order]}";
         }
 
-        private void SubmitButton_Click(object sender, RoutedEventArgs e)
+        private async void SubmitButton_Click(object sender, RoutedEventArgs e)
         {
             if (!ValidateForm())
             {
@@ -216,46 +201,89 @@ namespace FLS
                 return;
             }
 
+            var userId = AppSettings.GetCurrentUserId();
+            if (string.IsNullOrWhiteSpace(userId))
+            {
+                MessageBox.Show("Please log in to submit materials.", "Authentication Required",
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            SubmitButton.IsEnabled = false;
+            SubmitButton.Content = "Uploading...";
+            ShowStatusMessage("Uploading file...", true);
+
             try
             {
-                // Create submission object
-                var submission = new CourseMaterialSubmission
+                string fileType = MapMaterialTypeToFileType(_selectedMaterialType);
+                
+                int? year = null;
+                if (!string.IsNullOrWhiteSpace(SemesterTextBox.Text))
                 {
-                    Id = _nextSubmissionId++,
-                    CourseId = _selectedCourse.Id,
-                    Course = _selectedCourse,
-                    MaterialType = _selectedMaterialType,
-                    Semester = SemesterTextBox.Text.Trim(),
-                    FilePath = _selectedFilePath,
-                    FileName = Path.GetFileName(_selectedFilePath),
-                    SubmittedDate = DateTime.Now,
-                    IsApproved = false,
-                    SubmittedBy = "CurrentUser" // TODO: Get from authentication
-                };
+                    var yearMatch = System.Text.RegularExpressions.Regex.Match(SemesterTextBox.Text, @"\b(20\d{2})\b");
+                    if (yearMatch.Success && int.TryParse(yearMatch.Value, out var parsedYear))
+                    {
+                        year = parsedYear;
+                    }
+                }
 
-                // TODO: Save to database/API
-                // For now, just show success message
-                ShowStatusMessage($"Material submitted successfully! It will be reviewed by an admin.", true);
+                var response = await _apiClient.UploadMaterialAsync(
+                    userId,
+                    _selectedFilePath,
+                    _selectedCourse.Name,
+                    fileType,
+                    year
+                );
 
-                // Reset form
-                ResetForm();
+                if (response.Success && response.Data != null)
+                {
+                    ShowStatusMessage("Material submitted successfully! It will be reviewed by an admin.", true);
+                    ResetForm();
 
-                MessageBox.Show(
-                    $"Course material submitted successfully!\n\n" +
-                    $"Course: {_selectedCourse.Name}\n" +
-                    $"Type: {_selectedMaterialType}\n" +
-                    $"Semester: {submission.Semester}\n" +
-                    $"File: {submission.FileName}\n\n" +
-                    "Your submission is pending admin approval.",
-                    "Submission Successful",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Information);
+                    MessageBox.Show(
+                        $"Course material submitted successfully!\n\n" +
+                        $"Course: {_selectedCourse.Name}\n" +
+                        $"Type: {fileType}\n" +
+                        $"File: {Path.GetFileName(_selectedFilePath)}\n\n" +
+                        "Your submission is pending admin approval.",
+                        "Submission Successful",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Information);
+                }
+                else
+                {
+                    ShowStatusMessage(response.Message ?? "Failed to submit material.", false);
+                    MessageBox.Show(
+                        response.Message ?? "Failed to submit material. Please try again.",
+                        "Submission Failed",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Error);
+                }
             }
             catch (Exception ex)
             {
+                ShowStatusMessage($"Error submitting material: {ex.Message}", false);
                 MessageBox.Show($"Error submitting material: {ex.Message}", "Error",
                     MessageBoxButton.OK, MessageBoxImage.Error);
             }
+            finally
+            {
+                SubmitButton.IsEnabled = true;
+                SubmitButton.Content = "Submit";
+            }
+        }
+
+        private string MapMaterialTypeToFileType(MaterialType materialType)
+        {
+            return materialType switch
+            {
+                MaterialType.Quiz => "quizzes",
+                MaterialType.Assignment => "assignments",
+                MaterialType.Mid1 => "Midterm 1",
+                MaterialType.Mid2 => "Midterm 2",
+                MaterialType.Final => "Final",
+                _ => "assignments"
+            };
         }
 
         private bool ValidateForm()
@@ -299,7 +327,6 @@ namespace FLS
             StatusTextBlock.Visibility = Visibility.Visible;
         }
 
-        // Public method to set courses from external source (e.g., AllCoursesView)
         public void SetCourses(ObservableCollection<Course> courses)
         {
             _courses.Clear();
@@ -311,3 +338,4 @@ namespace FLS
         }
     }
 }
+

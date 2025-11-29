@@ -48,7 +48,7 @@ namespace FLS
                 _courseDetailView.BackRequested += OnCourseDetailBackRequested;
             }
             _courseDetailView.SetCourse(course);
-            _courseDetailView.LoadDummyData();
+            _ = _courseDetailView.LoadCourseMaterialsAsync();
             ContentArea.Content = _courseDetailView;
             _currentView = _courseDetailView;
         }

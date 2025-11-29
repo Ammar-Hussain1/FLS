@@ -1,26 +1,39 @@
 using System;
+using System.Text.Json.Serialization;
 
 namespace FLS.Models
 {
     public class MaterialRequest
     {
-        public int Id { get; set; }
-        public string CourseCode { get; set; }
-        public string MaterialType { get; set; }
-        public string SubmittedBy { get; set; }
-        public DateTime SubmissionDate { get; set; }
-        public string Status { get; set; } // Pending, Approved, Rejected
-        public string FilePath { get; set; }
+        [JsonPropertyName("id")]
+        public string Id { get; set; } = string.Empty;
 
-        public MaterialRequest(int id, string courseCode, string materialType, string submittedBy, DateTime submissionDate, string status, string filePath)
-        {
-            Id = id;
-            CourseCode = courseCode;
-            MaterialType = materialType;
-            SubmittedBy = submittedBy;
-            SubmissionDate = submissionDate;
-            Status = status;
-            FilePath = filePath;
-        }
+        [JsonPropertyName("courseId")]
+        public string CourseId { get; set; } = string.Empty;
+
+        [JsonPropertyName("courseName")]
+        public string CourseName { get; set; } = string.Empty;
+
+        [JsonPropertyName("title")]
+        public string Title { get; set; } = string.Empty;
+
+        [JsonPropertyName("category")]
+        public string Category { get; set; } = string.Empty;
+
+        [JsonPropertyName("filePath")]
+        public string? FilePath { get; set; }
+
+        [JsonPropertyName("year")]
+        public int? Year { get; set; }
+
+        [JsonPropertyName("status")]
+        public string Status { get; set; } = string.Empty;
+
+        [JsonPropertyName("uploadedAt")]
+        public DateTime UploadedAt { get; set; }
+
+        public string CourseCode => CourseName;
+        public string MaterialType => Category;
+        public DateTime SubmissionDate => UploadedAt;
     }
 }
