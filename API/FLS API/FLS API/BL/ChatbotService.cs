@@ -1,20 +1,18 @@
-using FLS_API.DL;
 using FLS_API.DL.Models;
-using Microsoft.EntityFrameworkCore;
 using System.Text;
 
 namespace FLS_API.BL
 {
     public class ChatbotService : IChatbotService
     {
-        private readonly AppDbContext _context;
+        private readonly SupabaseService _supabase;
         private readonly IConfiguration _configuration;
         private const int MAX_MEMORIES = 100;
         private const int TOP_MEMORIES_TO_KEEP = 50;
 
-        public ChatbotService(AppDbContext context, IConfiguration configuration)
+        public ChatbotService(SupabaseService supabase, IConfiguration configuration)
         {
-            _context = context;
+            _supabase = supabase;
             _configuration = configuration;
         }
 
@@ -34,10 +32,10 @@ namespace FLS_API.BL
                 var memories = await GetTopMemoriesAsync(userId, limit: 20);
                 
                 // 2. RAG: Get relevant course materials (if applicable)
-                var courseMaterials = await GetRelevantCourseMaterialsAsync(userMessage, userId);
+                var courseMaterials = await GetRelevantCourseMaterialsAsync(message, userId);
                 
                 // 3. Build context-aware prompt (no chat history - it's local now)
-                var prompt = BuildPrompt(userMessage, memories, courseMaterials);
+                var prompt = BuildPrompt(message, memories, courseMaterials);
                 
                 // 4. Call Gemini API
                 var aiResponse = await geminiClient.GenerateContentAsync(prompt);
@@ -59,24 +57,20 @@ namespace FLS_API.BL
 
         private async Task<List<UserMemory>> GetTopMemoriesAsync(int userId, int limit)
         {
-            var memories = await _context.UserMemory
+            var response = await _supabase.Client.From<UserMemory>()
                 .Where(m => m.UserId == userId)
-                .OrderByDescending(m => m.Importance)
-                .ThenByDescending(m => m.CreatedAt)
-                .Take(limit)
-                .ToListAsync();
+                .Order(m => m.Importance, Supabase.Postgrest.Constants.Ordering.Descending)
+                .Order(m => m.CreatedAt, Supabase.Postgrest.Constants.Ordering.Descending)
+                .Limit(limit)
+                .Get();
 
-            // Update last accessed time
-            foreach (var memory in memories)
-            {
-                memory.LastAccessedAt = DateTime.UtcNow;
-            }
-            await _context.SaveChangesAsync();
+            var memories = response.Models;
 
+            // Update last accessed time (optional, might skip to reduce writes)
+            // For now skipping to keep it simple and fast
+            
             return memories;
         }
-
-
 
         private async Task<string> GetRelevantCourseMaterialsAsync(string query, int userId)
         {
@@ -141,36 +135,41 @@ namespace FLS_API.BL
                     CreatedAt = DateTime.UtcNow
                 };
                 
-                _context.UserMemory.Add(memory);
+                await _supabase.Client.From<UserMemory>().Insert(memory);
             }
             
             // Delete forgotten memories
             if (response.MemoryDeletions.Any())
             {
-                var memoriesToDelete = await _context.UserMemory
-                    .Where(m => m.UserId == userId && response.MemoryDeletions.Contains(m.Id))
-                    .ToListAsync();
-                
-                _context.UserMemory.RemoveRange(memoriesToDelete);
+                foreach (var memoryId in response.MemoryDeletions)
+                {
+                    await _supabase.Client.From<UserMemory>()
+                        .Where(m => m.UserId == userId && m.Id == memoryId)
+                        .Delete();
+                }
             }
-            
-            await _context.SaveChangesAsync();
         }
-
-
 
         private async Task PruneMemoriesIfNeededAsync(int userId, GeminiApiClient geminiClient)
         {
-            var memoryCount = await _context.UserMemory.CountAsync(m => m.UserId == userId);
+            // Get count by fetching IDs (simple and reliable for small datasets)
+            var countResponse = await _supabase.Client.From<UserMemory>()
+                .Select("id")
+                .Where(m => m.UserId == userId)
+                .Get();
+                
+            var memoryCount = countResponse.Models.Count;
             
             if (memoryCount > MAX_MEMORIES)
             {
                 // Get all memories sorted by importance
-                var allMemories = await _context.UserMemory
+                var response = await _supabase.Client.From<UserMemory>()
                     .Where(m => m.UserId == userId)
-                    .OrderByDescending(m => m.Importance)
-                    .ThenByDescending(m => m.LastAccessedAt ?? m.CreatedAt)
-                    .ToListAsync();
+                    .Order(m => m.Importance, Supabase.Postgrest.Constants.Ordering.Descending)
+                    .Order(m => m.CreatedAt, Supabase.Postgrest.Constants.Ordering.Descending)
+                    .Get();
+                    
+                var allMemories = response.Models;
                 
                 // Keep top 50, summarize the rest
                 var toKeep = allMemories.Take(TOP_MEMORIES_TO_KEEP).ToList();
@@ -195,11 +194,13 @@ namespace FLS_API.BL
                         CreatedAt = DateTime.UtcNow
                     };
                     
-                    _context.UserMemory.Add(summaryMemory);
+                    await _supabase.Client.From<UserMemory>().Insert(summaryMemory);
                     
                     // Delete old memories
-                    _context.UserMemory.RemoveRange(toSummarize);
-                    await _context.SaveChangesAsync();
+                    foreach (var memory in toSummarize)
+                    {
+                        await _supabase.Client.From<UserMemory>().Delete(memory);
+                    }
                 }
             }
         }
