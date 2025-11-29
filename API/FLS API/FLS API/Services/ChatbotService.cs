@@ -23,8 +23,8 @@ namespace FLS_API.BL
                 return "Invalid user ID";
             }
 
-            // Create Gemini client with user's API key
-            var geminiClient = new GeminiApiClient(apiKey);
+            // Create OpenRouter client with user's API key
+            var openRouterClient = new OpenRouterApiClient(apiKey);
 
             try
             {
@@ -37,14 +37,11 @@ namespace FLS_API.BL
                 // 3. Build context-aware prompt (no chat history - it's local now)
                 var prompt = BuildPrompt(message, memories, courseMaterials);
                 
-                // 4. Call Gemini API
-                var aiResponse = await geminiClient.GenerateContentAsync(prompt);
+                // 4. Call OpenRouter API
+                var aiResponse = await openRouterClient.GenerateContentAsync(prompt);
                 
                 // 5. Process memory updates
                 await ProcessMemoryUpdatesAsync(userId, aiResponse);
-                
-                // 6. Prune old memories if needed
-                await PruneMemoriesIfNeededAsync(userId, geminiClient);
                 
                 return aiResponse.CleanText;
             }
@@ -121,7 +118,7 @@ namespace FLS_API.BL
             return sb.ToString();
         }
 
-        private async Task ProcessMemoryUpdatesAsync(int userId, GeminiResponse response)
+        private async Task ProcessMemoryUpdatesAsync(int userId, OpenRouterResponse response)
         {
             // Add new memories
             foreach (var update in response.MemoryUpdates)
@@ -150,59 +147,6 @@ namespace FLS_API.BL
             }
         }
 
-        private async Task PruneMemoriesIfNeededAsync(int userId, GeminiApiClient geminiClient)
-        {
-            // Get count by fetching IDs (simple and reliable for small datasets)
-            var countResponse = await _supabase.Client.From<UserMemory>()
-                .Select("id")
-                .Where(m => m.UserId == userId)
-                .Get();
-                
-            var memoryCount = countResponse.Models.Count;
-            
-            if (memoryCount > MAX_MEMORIES)
-            {
-                // Get all memories sorted by importance
-                var response = await _supabase.Client.From<UserMemory>()
-                    .Where(m => m.UserId == userId)
-                    .Order(m => m.Importance, Supabase.Postgrest.Constants.Ordering.Descending)
-                    .Order(m => m.CreatedAt, Supabase.Postgrest.Constants.Ordering.Descending)
-                    .Get();
-                    
-                var allMemories = response.Models;
-                
-                // Keep top 50, summarize the rest
-                var toKeep = allMemories.Take(TOP_MEMORIES_TO_KEEP).ToList();
-                var toSummarize = allMemories.Skip(TOP_MEMORIES_TO_KEEP).ToList();
-                
-                if (toSummarize.Any())
-                {
-                    // Create summary using AI
-                    var summaryPrompt = $@"Summarize these memories into a concise paragraph (max 200 words):
-{string.Join("\n", toSummarize.Select(m => $"- {m.Content}"))}";
-                    
-                    var summaryResponse = await geminiClient.GenerateContentAsync(summaryPrompt, temperature: 0.3);
-                    
-                    // Add summary as a new memory
-                    var summaryMemory = new UserMemory
-                    {
-                        UserId = userId,
-                        Content = summaryResponse.CleanText,
-                        Importance = 6,
-                        Category = "summary",
-                        IsSummary = true,
-                        CreatedAt = DateTime.UtcNow
-                    };
-                    
-                    await _supabase.Client.From<UserMemory>().Insert(summaryMemory);
-                    
-                    // Delete old memories
-                    foreach (var memory in toSummarize)
-                    {
-                        await _supabase.Client.From<UserMemory>().Delete(memory);
-                    }
-                }
-            }
-        }
+
     }
 }

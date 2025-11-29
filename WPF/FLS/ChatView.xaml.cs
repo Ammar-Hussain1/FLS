@@ -87,7 +87,7 @@ namespace FLS
                 }
                 else
                 {
-                    AddAIMessage("⚠️ Please configure your Gemini API key to use the chatbot. You can get one from: https://aistudio.google.com/app/apikey");
+                    AddAIMessage("⚠️ Please configure your Groq API key to use the chatbot. You can get one from: https://console.groq.com/keys");
                 }
             }
         }
@@ -117,7 +117,7 @@ namespace FLS
 
             if (_chatService == null || string.IsNullOrWhiteSpace(_userApiKey))
             {
-                AddAIMessage("⚠️ Please configure your Gemini API key first.");
+                AddAIMessage("⚠️ Please configure your Groq API key first.");
                 CheckAndPromptForApiKey();
                 return;
             }

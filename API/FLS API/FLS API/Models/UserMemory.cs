@@ -8,7 +8,7 @@ namespace FLS_API.DL.Models
     public class UserMemory : BaseModel
     {
         [PrimaryKey("id", false)]
-        public int Id { get; set; }
+        public Guid Id { get; set; }
         
         [Column("user_id")]
         public int UserId { get; set; }
@@ -23,13 +23,7 @@ namespace FLS_API.DL.Models
         [Column("category")]
         public string Category { get; set; } = "general";
         
-        [Column("is_summary")]
-        public bool IsSummary { get; set; } = false;
-        
         [Column("created_at")]
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-        
-        [Column("last_accessed_at")]
-        public DateTime? LastAccessedAt { get; set; }
     }
 }
