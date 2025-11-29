@@ -28,3 +28,4 @@ Thumbs.db
 *.log
 build_output*.txt
 timetable_structure.txt
+ExcelAnalyzer/

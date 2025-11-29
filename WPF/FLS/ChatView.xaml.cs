@@ -1,5 +1,6 @@
 using System;
 using System.Collections.ObjectModel;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -91,21 +92,58 @@ namespace FLS
             }
         }
 
-        private void SendButton_Click(object sender, RoutedEventArgs e)
+        private async void SendButton_Click(object sender, RoutedEventArgs e)
         {
-            SendMessage();
+            await SendMessage();
         }
 
-        private void MessageInput_KeyDown(object sender, KeyEventArgs e)
+        private async void MessageInput_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.Key == Key.Enter && !Keyboard.Modifiers.HasFlag(ModifierKeys.Shift))
             {
                 e.Handled = true;
-                SendMessage();
+                await SendMessage();
             }
         }
 
-        private async void SendMessage()
+        private async void UploadTimetable_Click(object sender, RoutedEventArgs e)
+        {
+            var openFileDialog = new Microsoft.Win32.OpenFileDialog
+            {
+                Filter = "Excel Files|*.xlsx;*.xls",
+                Title = "Select Timetable File"
+            };
+
+            if (openFileDialog.ShowDialog() == true)
+            {
+                try
+                {
+                    AddAIMessage("Uploading and parsing timetable...");
+                    
+                    if (_chatService == null)
+                    {
+                         // If chat service is null (no API key), we might still want to allow upload if it doesn't require API key?
+                         // But ChatService constructor requires API key.
+                         // We should prompt for API key first or handle this case.
+                         // For now, assume API key is set or prompt.
+                         if (string.IsNullOrWhiteSpace(_userApiKey))
+                         {
+                             CheckAndPromptForApiKey();
+                             if (_chatService == null) return;
+                         }
+                    }
+
+                    await _chatService.UploadTimetableAsync(openFileDialog.FileName);
+                    AddAIMessage("Timetable uploaded successfully! I can now answer questions about your schedule.");
+                }
+                catch (Exception ex)
+                {
+                    AddAIMessage($"Error uploading timetable: {ex.Message}");
+                }
+            }
+        }
+
+        private async Task SendMessage()
         {
             string message = MessageInput.Text.Trim();
 

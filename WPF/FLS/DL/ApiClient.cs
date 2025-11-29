@@ -42,5 +42,22 @@ namespace FLS.DL
 
             return chatResponse ?? throw new Exception("Failed to deserialize API response");
         }
+
+        public async Task UploadTimetableAsync(string filePath)
+        {
+            using var content = new MultipartFormDataContent();
+            using var fileStream = System.IO.File.OpenRead(filePath);
+            using var fileContent = new StreamContent(fileStream);
+            
+            content.Add(fileContent, "file", System.IO.Path.GetFileName(filePath));
+            
+            var response = await _httpClient.PostAsync($"{API_BASE_URL}/api/Timetable/upload", content);
+            
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorContent = await response.Content.ReadAsStringAsync();
+                throw new HttpRequestException($"API returned {response.StatusCode}: {errorContent}");
+            }
+        }
     }
 }
