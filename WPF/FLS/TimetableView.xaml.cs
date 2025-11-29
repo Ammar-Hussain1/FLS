@@ -100,6 +100,17 @@ namespace FLS
 
             var stackPanel = new StackPanel();
 
+            // Add time display at the top
+            var timeText = new TextBlock
+            {
+                Text = $"🕐 {slot.Time}",
+                FontSize = 11,
+                FontWeight = FontWeights.SemiBold,
+                Foreground = Brushes.White,
+                Opacity = 0.9,
+                Margin = new Thickness(0, 0, 0, 5)
+            };
+
             var courseCode = new TextBlock
             {
                 Text = slot.CourseCode,
@@ -128,6 +139,7 @@ namespace FLS
             details.Inlines.Add(new System.Windows.Documents.Run($"📍 {slot.Room}\n"));
             details.Inlines.Add(new System.Windows.Documents.Run($"👤 {slot.Instructor}"));
 
+            stackPanel.Children.Add(timeText);
             stackPanel.Children.Add(courseCode);
             stackPanel.Children.Add(courseName);
             stackPanel.Children.Add(details);

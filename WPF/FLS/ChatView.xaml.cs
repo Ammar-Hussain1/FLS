@@ -162,6 +162,20 @@ namespace FLS
             ScrollToBottom();
         }
 
+        private void ThresholdButton_Click(object sender, RoutedEventArgs e)
+        {
+            var dialog = new ApiKeyDialog();
+            dialog.Owner = Window.GetWindow(this);
+            var result = dialog.ShowDialog();
+
+            if (result == true)
+            {
+                _userApiKey = AppSettings.GetApiKey();
+                _chatService = new ChatService(_userApiKey);
+                AddAIMessage("✅ API key updated successfully! You can now continue chatting.");
+            }
+        }
+
         private void ScrollToBottom()
         {
             Dispatcher.BeginInvoke(new Action(() =>
