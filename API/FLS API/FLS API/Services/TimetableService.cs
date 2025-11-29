@@ -14,7 +14,7 @@ namespace FLS_API.BL
         // Valid enum values for the week_day database constraint
         private static readonly HashSet<string> ValidDays = new(StringComparer.OrdinalIgnoreCase)
         {
-            "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"
+            "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"
         };
 
         public TimetableService(SupabaseService supabase)
@@ -185,37 +185,47 @@ namespace FLS_API.BL
             return row.Cell(map[colName]).Value.ToString().Trim();
         }
 
-        private void ProcessSlot(IXLRow row, Dictionary<string, int> colMap, 
-            string dayKey, string slotKey, string venueKey, int duration, 
-            List<TimeTable> list, Course course, Section section, string courseName)
-        {
-            if (!colMap.ContainsKey(dayKey) || !colMap.ContainsKey(slotKey)) return;
+private void ProcessSlot(IXLRow row, Dictionary<string, int> colMap, 
+    string dayKey, string slotKey, string venueKey, int duration, 
+    List<TimeTable> list, Course course, Section section, string courseName)
+{
+    // 1. Check if columns exist in this sheet
+    if (!colMap.ContainsKey(dayKey) || !colMap.ContainsKey(slotKey)) return;
 
-            string day = row.Cell(colMap[dayKey]).Value.ToString().Trim();
-            var timeCell = row.Cell(colMap[slotKey]);
-            if (timeCell.IsEmpty()) return;
+    // 2. Extract Data
+    string day = row.Cell(colMap[dayKey]).Value.ToString().Trim();
+    var timeCell = row.Cell(colMap[slotKey]);
+    string startStr = GetSafeTime(timeCell); 
 
-            string startStr = GetSafeTime(timeCell);
-            string room = colMap.ContainsKey(venueKey) ? row.Cell(colMap[venueKey]).Value.ToString().Trim() : "";
+    // 3. THE FIX: Smart Empty Check
+    bool isDayEmpty = string.IsNullOrWhiteSpace(day);
+    bool isTimeEmpty = string.IsNullOrWhiteSpace(startStr);
 
-            if (string.IsNullOrWhiteSpace(day) || string.IsNullOrWhiteSpace(startStr)) return;
-            
-            // Validate day against database enum constraint
-            if (!ValidDays.Contains(day)) return;
+    // CASE: Completely Empty Slot (Normal for Labs or 1-day classes) -> Silent Skip
+    if (isDayEmpty && isTimeEmpty) return;
 
-            string timeRange = ComputeTimeRange(startStr, duration);
+    // CASE: Partial Data (Has Day but no Time, or vice versa) -> Log Warning
+    if (isDayEmpty || isTimeEmpty) 
+    {
+        Console.WriteLine($"[WARNING] Incomplete Schedule for {courseName} ({section.Name}). Day: '{day}', Time: '{startStr}'. Skipping.");
+        return;
+    }
 
-            list.Add(new TimeTable
-            {
-                Id = Guid.NewGuid(),
-                CourseId = course.Id,
-                SectionId = section.Id,
-                Day = day,
-                Time = timeRange,
-                Subject = courseName,
-                Room = room
-            });
-        }
+    // 4. Valid Slot -> Add to list
+    string room = colMap.ContainsKey(venueKey) ? row.Cell(colMap[venueKey]).Value.ToString().Trim() : "";
+    string timeRange = ComputeTimeRange(startStr, duration);
+
+    list.Add(new TimeTable
+    {
+        Id = Guid.NewGuid(),
+        CourseId = course.Id,
+        SectionId = section.Id,
+        Day = day,
+        Time = timeRange,
+        Subject = courseName,
+        Room = room
+    });
+}
 
         private string GetSafeTime(IXLCell cell)
         {
