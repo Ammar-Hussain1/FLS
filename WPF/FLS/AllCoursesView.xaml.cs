@@ -18,7 +18,6 @@ namespace FLS
         private int _nextCourseId = 1;
         private int _nextUserCourseId = 1;
         
-        // Pagination fields
         private int _currentPage = 1;
         private int _pageSize = 10;
         private int _totalPages = 1;
@@ -217,7 +216,6 @@ namespace FLS
 
         private void UpdatePagination()
         {
-            // Get filtered courses
             _filteredCourses.Clear();
             if (_coursesViewSource?.View != null)
             {
@@ -227,22 +225,18 @@ namespace FLS
                 }
             }
             
-            // Calculate pagination
             _totalPages = _filteredCourses.Count > 0 ? (int)Math.Ceiling((double)_filteredCourses.Count / _pageSize) : 1;
             if (_currentPage > _totalPages) _currentPage = _totalPages;
             if (_currentPage < 1) _currentPage = 1;
             
-            // Get page items
             var skip = (_currentPage - 1) * _pageSize;
             var pageItems = _filteredCourses.Skip(skip).Take(_pageSize).ToList();
             
-            // Update UI
             CoursesItemsControl.ItemsSource = pageItems;
             PageInfoText.Text = $"Page {_currentPage} of {_totalPages}";
             PrevPageButton.IsEnabled = _currentPage > 1;
             NextPageButton.IsEnabled = _currentPage < _totalPages;
             
-            // Update empty state
             EmptyStateText.Visibility = _filteredCourses.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
             
             if (!string.IsNullOrWhiteSpace(SearchTextBox?.Text) && _filteredCourses.Count == 0 && _courses.Count > 0)

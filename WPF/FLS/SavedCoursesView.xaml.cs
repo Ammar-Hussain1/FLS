@@ -12,7 +12,6 @@ namespace FLS
         private ObservableCollection<UserCourse> _savedCourses;
         private Dashboard _parentDashboard;
         
-        // Pagination fields
         private int _currentPage = 1;
         private int _pageSize = 10;
         private int _totalPages = 1;
