@@ -7,9 +7,6 @@ using Microsoft.Win32;
 
 namespace FLS
 {
-    /// <summary>
-    /// Interaction logic for TimetableUploadView.xaml
-    /// </summary>
     public partial class TimetableUploadView : UserControl
     {
         private string _selectedFilePath;

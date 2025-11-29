@@ -8,6 +8,6 @@ namespace FLS.Models
         public string Name { get; set; } = string.Empty;
         public string Url { get; set; } = string.Empty;
         public int Likes { get; set; }
-        public int CourseId { get; set; }
+        public string CourseId { get; set; } = string.Empty;
     }
 }

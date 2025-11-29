@@ -244,14 +244,15 @@ namespace FLS_API.BL
                     return ServiceResult<List<UserCourseDTO>>.Success(new List<UserCourseDTO>());
                 }
 
-                var courseIds = userCoursesResponse.Models.Select(uc => uc.CourseId).Distinct().ToList();
+                var courseIds = userCoursesResponse.Models.Select(uc => uc.CourseId).Distinct().ToHashSet();
                 
-                var coursesResponse = await _client.From<Course>()
+                var allCoursesResponse = await _client.From<Course>().Get();
+                var courses = allCoursesResponse.Models
                     .Where(c => courseIds.Contains(c.Id))
-                    .Get();
+                    .ToList();
 
                 var result = userCoursesResponse.Models
-                    .Join(coursesResponse.Models,
+                    .Join(courses,
                         uc => uc.CourseId,
                         c => c.Id,
                         (uc, c) => new UserCourseDTO
@@ -463,11 +464,16 @@ namespace FLS_API.BL
 
                 var materials = materialsResponse.Models.ToList();
                 
-                var courseIds = materials.Select(m => m.CourseId).Distinct().ToList();
-                var coursesResponse = await _client.From<Course>()
+                if (!materials.Any())
+                {
+                    return ServiceResult<List<MaterialResponseDTO>>.Success(new List<MaterialResponseDTO>());
+                }
+                
+                var allCoursesResponse = await _client.From<Course>().Get();
+                var courseIds = materials.Select(m => m.CourseId).Distinct().ToHashSet();
+                var courses = allCoursesResponse.Models
                     .Where(c => courseIds.Contains(c.Id))
-                    .Get();
-                var courses = coursesResponse.Models.ToDictionary(c => c.Id, c => c.Name);
+                    .ToDictionary(c => c.Id, c => c.Name);
 
                 var result = materials
                     .OrderByDescending(m => m.UploadedAt)
@@ -502,11 +508,16 @@ namespace FLS_API.BL
 
                 var materials = materialsResponse.Models.ToList();
                 
-                var courseIds = materials.Select(m => m.CourseId).Distinct().ToList();
-                var coursesResponse = await _client.From<Course>()
+                if (!materials.Any())
+                {
+                    return ServiceResult<List<MaterialResponseDTO>>.Success(new List<MaterialResponseDTO>());
+                }
+                
+                var allCoursesResponse = await _client.From<Course>().Get();
+                var courseIds = materials.Select(m => m.CourseId).Distinct().ToHashSet();
+                var courses = allCoursesResponse.Models
                     .Where(c => courseIds.Contains(c.Id))
-                    .Get();
-                var courses = coursesResponse.Models.ToDictionary(c => c.Id, c => c.Name);
+                    .ToDictionary(c => c.Id, c => c.Name);
 
                 var result = materials
                     .OrderByDescending(m => m.UploadedAt)

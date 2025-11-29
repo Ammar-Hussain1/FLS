@@ -44,7 +44,7 @@ namespace FLS
         {
             if (_materialRequestsView == null)
             {
-                _materialRequestsView = new MaterialRequestsView();
+                _materialRequestsView = new MaterialRequestsView(isAdminView: true);
             }
             ContentArea.Content = _materialRequestsView;
             _currentView = _materialRequestsView;

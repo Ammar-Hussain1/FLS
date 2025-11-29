@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
@@ -44,41 +45,64 @@ namespace FLS
 
         private async void LoadCourses()
         {
-            var userId = AppSettings.GetCurrentUserId();
-            if (string.IsNullOrWhiteSpace(userId))
-            {
-                ShowStatusMessage("Please log in to submit materials.", false);
-                return;
-            }
-
             try
             {
-                var response = await _apiClient.GetMyCoursesAsync(userId);
-                if (response.Success && response.Data != null)
+                var allCourses = new List<CourseDTO>();
+                int currentPage = 1;
+                int pageSize = 100;
+                bool hasMorePages = true;
+
+                while (hasMorePages)
                 {
-                    _courses.Clear();
-                    foreach (var userCourse in response.Data)
-                    {
-                        _courses.Add(new Course
-                        {
-                            Id = int.TryParse(userCourse.CourseId, out var id) ? id : 0,
-                            Name = userCourse.CourseName,
-                            Code = userCourse.CourseCode,
-                            Description = userCourse.Description ?? string.Empty,
-                            Credits = 0,
-                            CreatedDate = DateTime.Now
-                        });
-                    }
-                    CourseComboBox.ItemsSource = _courses;
+                    var response = await _apiClient.GetCoursesAsync(currentPage, pageSize);
                     
-                    if (_courses.Count == 0)
+                    if (response.Success && response.Data != null)
                     {
-                        ShowStatusMessage("No courses found. Please enroll in a course first.", false);
+                        allCourses.AddRange(response.Data.Data);
+                        
+                        if (response.Data.Pagination != null)
+                        {
+                            hasMorePages = response.Data.Pagination.HasNextPage;
+                            currentPage++;
+                        }
+                        else
+                        {
+                            hasMorePages = false;
+                        }
                     }
+                    else
+                    {
+                        hasMorePages = false;
+                        if (currentPage == 1)
+                        {
+                            ShowStatusMessage(response.Message ?? "Failed to load courses.", false);
+                        }
+                    }
+                }
+
+                _courses.Clear();
+                foreach (var courseDto in allCourses)
+                {
+                    _courses.Add(new Course
+                    {
+                        Id = courseDto.Id,
+                        Name = courseDto.Name,
+                        Code = courseDto.Code,
+                        Description = courseDto.Description ?? string.Empty,
+                        Credits = 0,
+                        CreatedDate = DateTime.Now
+                    });
+                }
+                
+                CourseComboBox.ItemsSource = _courses;
+                
+                if (_courses.Count == 0)
+                {
+                    ShowStatusMessage("No courses found.", false);
                 }
                 else
                 {
-                    ShowStatusMessage(response.Message ?? "Failed to load courses.", false);
+                    StatusTextBlock.Visibility = Visibility.Collapsed;
                 }
             }
             catch (Exception ex)
@@ -194,10 +218,21 @@ namespace FLS
 
         private async void SubmitButton_Click(object sender, RoutedEventArgs e)
         {
+            // Re-validate and get selected course from ComboBox
+            _selectedCourse = CourseComboBox.SelectedItem as Course;
+            
             if (!ValidateForm())
             {
                 MessageBox.Show("Please fill in all required fields and select a valid PDF file.",
                     "Validation Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            // Double-check that course is selected and has valid data
+            if (_selectedCourse == null || string.IsNullOrWhiteSpace(_selectedCourse.Name))
+            {
+                MessageBox.Show("Please select a valid course.", "Validation Error", 
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
@@ -209,12 +244,28 @@ namespace FLS
                 return;
             }
 
+            if (string.IsNullOrEmpty(_selectedFilePath) || !File.Exists(_selectedFilePath))
+            {
+                MessageBox.Show("Please select a valid PDF file.", "Validation Error",
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
             SubmitButton.IsEnabled = false;
             SubmitButton.Content = "Uploading...";
             ShowStatusMessage("Uploading file...", true);
 
             try
             {
+                if (MaterialTypeComboBox.SelectedItem is ComboBoxItem selectedItem)
+                {
+                    string materialTypeStr = selectedItem.Content.ToString();
+                    if (Enum.TryParse<MaterialType>(materialTypeStr, out MaterialType materialType))
+                    {
+                        _selectedMaterialType = materialType;
+                    }
+                }
+                
                 string fileType = MapMaterialTypeToFileType(_selectedMaterialType);
                 
                 int? year = null;
@@ -227,6 +278,9 @@ namespace FLS
                     }
                 }
 
+                string courseName = _selectedCourse?.Name ?? "Unknown Course";
+                string fileName = !string.IsNullOrEmpty(_selectedFilePath) ? Path.GetFileName(_selectedFilePath) : "Unknown File";
+                
                 var response = await _apiClient.UploadMaterialAsync(
                     userId,
                     _selectedFilePath,
@@ -235,16 +289,17 @@ namespace FLS
                     year
                 );
 
-                if (response.Success && response.Data != null)
+                if (response.Success)
                 {
                     ShowStatusMessage("Material submitted successfully! It will be reviewed by an admin.", true);
+                    
                     ResetForm();
 
                     MessageBox.Show(
                         $"Course material submitted successfully!\n\n" +
-                        $"Course: {_selectedCourse.Name}\n" +
+                        $"Course: {courseName}\n" +
                         $"Type: {fileType}\n" +
-                        $"File: {Path.GetFileName(_selectedFilePath)}\n\n" +
+                        $"File: {fileName}\n\n" +
                         "Your submission is pending admin approval.",
                         "Submission Successful",
                         MessageBoxButton.OK,

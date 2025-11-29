@@ -284,7 +284,7 @@
                                             BorderThickness="0"
                                             Cursor="Hand"
                                             Padding="0"
-                                            Tag="{Binding Id}"
+                                            Tag="{Binding}"
                                             Click="SaveCourseButton_Click"
                                             ToolTip="Save Course"/>
 
@@ -301,12 +301,6 @@
                                                 Grid.Row="2"
                                                 Grid.ColumnSpan="2"
                                                 Orientation="Horizontal">
-                                        <TextBlock FontSize="14"
-                                                   Foreground="{StaticResource Primary}"
-                                                   Margin="0,0,20,0">
-                                            <Run Text="Credits: " FontWeight="SemiBold"/>
-                                            <Run Text="{Binding Credits}"/>
-                                        </TextBlock>
                                         <TextBlock FontSize="14"
                                                    Foreground="{StaticResource Primary}"
                                                    Margin="0,0,20,0">

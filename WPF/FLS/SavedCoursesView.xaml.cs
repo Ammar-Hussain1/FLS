@@ -61,7 +61,7 @@ namespace FLS
 
         private void RemoveCourseButton_Click(object sender, RoutedEventArgs e)
         {
-            if (sender is Button button && button.Tag is int courseId)
+            if (sender is Button button && button.Tag is string courseId)
             {
                 var result = MessageBox.Show(
                     "Remove this course from your saved courses?",

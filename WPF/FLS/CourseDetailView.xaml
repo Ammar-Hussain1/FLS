@@ -85,23 +85,8 @@
             
             <!-- Folders Grid (Visible by default) -->
             <Grid x:Name="FoldersGrid" Visibility="Visible">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
-                </Grid.RowDefinitions>
-
-                <!-- Course Info Summary -->
-                <Border Grid.Row="0" Background="White" CornerRadius="12" Padding="20" Margin="0,0,0,30" BorderBrush="{StaticResource Accent}" BorderThickness="1">
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                        <TextBlock FontSize="16" Foreground="{StaticResource Primary}">
-                            <Run Text="Credits: " FontWeight="SemiBold"/>
-                            <Run Name="CreditsText"/>
-                        </TextBlock>
-                    </StackPanel>
-                </Border>
-
                 <!-- Folders -->
-                <WrapPanel Grid.Row="1" HorizontalAlignment="Center">
+                <WrapPanel HorizontalAlignment="Center">
                     <!-- Quizzes -->
                     <Button Style="{StaticResource FolderButtonStyle}" Click="Folder_Click" Tag="Quizzes">
                         <StackPanel HorizontalAlignment="Center">
