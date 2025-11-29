@@ -47,10 +47,7 @@ namespace FLS.BL
             return response.Response;
         }
 
-        public async Task UploadTimetableAsync(string filePath)
-        {
-            await _apiClient.UploadTimetableAsync(filePath);
-        }
+
     }
 
     // DTOs for API communication
