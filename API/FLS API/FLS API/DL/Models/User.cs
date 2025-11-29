@@ -5,7 +5,7 @@ using Supabase.Postgrest.Models;
 namespace FLS_API.DL.Models
 {
 
-    [Table("Users")]
+    [Table("users")]
     public class User : BaseModel
     {
         [PrimaryKey("Id", false)]
