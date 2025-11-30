@@ -1,5 +1,6 @@
 using System.Configuration;
 using System.IO;
+using FLS.Models;
 
 namespace FLS.Helpers
 {
@@ -27,7 +28,6 @@ namespace FLS.Helpers
             }
             catch
             {
-                // Ignore errors
             }
             return string.Empty;
         }
@@ -45,8 +45,32 @@ namespace FLS.Helpers
             }
             catch
             {
-                // Ignore errors
             }
+        }
+
+        private static string? _currentUserId;
+        private static UserResponse? _currentUser;
+
+        public static void SetCurrentUser(UserResponse user)
+        {
+            _currentUser = user;
+            _currentUserId = user.Id;
+        }
+
+        public static string? GetCurrentUserId()
+        {
+            return _currentUserId;
+        }
+
+        public static UserResponse? GetCurrentUser()
+        {
+            return _currentUser;
+        }
+
+        public static void ClearCurrentUser()
+        {
+            _currentUser = null;
+            _currentUserId = null;
         }
     }
 }

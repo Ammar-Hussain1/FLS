@@ -96,8 +96,8 @@
                             <ComboBoxItem Content="Final"/>
                         </ComboBox>
 
-                        <!-- Semester Input -->
-                        <TextBlock Text="Semester:"
+                        <!-- Year Input -->
+                        <TextBlock Text="Academic Year:"
                                    FontSize="16"
                                    FontWeight="SemiBold"
                                    Foreground="{StaticResource Primary}"
@@ -109,7 +109,7 @@
                                  BorderThickness="2"
                                  Margin="0,0,0,15"
                                  TextChanged="SemesterTextBox_TextChanged"
-                                 ToolTip="e.g., Spring 2025, Fall 2023"/>
+                                 ToolTip="Enter year (e.g., 2025) or semester with year (e.g., Spring 2025, Fall 2023). Only the year will be saved."/>
 
                         <!-- File Selection -->
                         <TextBlock Text="PDF File:"

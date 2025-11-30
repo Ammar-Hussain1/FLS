@@ -30,7 +30,7 @@ namespace FLS
                 {
                     new Course
                     {
-                        Id = _nextCourseId++,
+                        Id = _nextCourseId++.ToString(),
                         Name = "Introduction to Programming",
                         Code = "CS101",
                         Description = "Fundamentals of programming and problem-solving",
@@ -39,7 +39,7 @@ namespace FLS
                     },
                     new Course
                     {
-                        Id = _nextCourseId++,
+                        Id = _nextCourseId++.ToString(),
                         Name = "Data Structures and Algorithms",
                         Code = "CS201",
                         Description = "Advanced data structures and algorithm design",
@@ -48,7 +48,7 @@ namespace FLS
                     },
                     new Course
                     {
-                        Id = _nextCourseId++,
+                        Id = _nextCourseId++.ToString(),
                         Name = "Database Systems",
                         Code = "CS301",
                         Description = "Design and implementation of database systems",
@@ -95,7 +95,7 @@ namespace FLS
 
             var course = new Course
             {
-                Id = _nextCourseId++,
+                Id = _nextCourseId++.ToString(),
                 Name = CourseNameTextBox.Text.Trim(),
                 Code = CourseCodeTextBox.Text.Trim(),
                 Description = CourseDescriptionTextBox.Text.Trim(),
@@ -112,7 +112,7 @@ namespace FLS
 
         private void DeleteCourseButton_Click(object sender, RoutedEventArgs e)
         {
-            if (sender is Button button && button.Tag is int courseId)
+            if (sender is Button button && button.Tag is string courseId)
             {
                 var result = MessageBox.Show(
                     "Are you sure you want to delete this course?",

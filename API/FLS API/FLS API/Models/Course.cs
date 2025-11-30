@@ -1,13 +1,23 @@
+using Supabase.Postgrest.Attributes;
+using Supabase.Postgrest.Models;
+
 namespace FLS_API.Models
 {
-    public class Course
+    [Table("courses")]
+    public class Course : BaseModel
     {
-        public int Id { get; set; }
-        public string Name { get; set; } = string.Empty;
+        [PrimaryKey("id", false)]
+        [Column("id")]
+        public string Id { get; set; } = string.Empty;
+
+        [Column("code")]
         public string Code { get; set; } = string.Empty;
-        public string Description { get; set; } = string.Empty;
-        public int Credits { get; set; }
-        public DateTime CreatedDate { get; set; }
+
+        [Column("name")]
+        public string Name { get; set; } = string.Empty;
+
+        [Column("description")]
+        public string? Description { get; set; }
     }
 }
 

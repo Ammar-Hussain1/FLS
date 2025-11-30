@@ -18,6 +18,8 @@ appsettings.json
 API/FLS API/FLS API/appsettings.json
 **/appsettings.json
 **/appsettings.Development.json
+credentials.json
+**/credentials.json
 
 # System files
 Thumbs.db

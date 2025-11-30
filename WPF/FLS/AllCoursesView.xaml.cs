@@ -3,10 +3,13 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using FLS.Models;
+using FLS.DL;
 
 namespace FLS
 {
@@ -14,9 +17,16 @@ namespace FLS
     {
         private ObservableCollection<Course> _courses;
         private ObservableCollection<UserCourse> _savedCourses;
-        private CollectionViewSource _coursesViewSource;
-        private int _nextCourseId = 1;
         private int _nextUserCourseId = 1;
+        
+        private int _currentPage = 1;
+        private int _pageSize = 10;
+        private int _totalPages = 1;
+        private int _totalCount = 0;
+        private string _currentSearch = string.Empty;
+        
+        private readonly ApiClient _apiClient;
+        private CancellationTokenSource? _searchCancellationTokenSource;
 
         public event Action<ObservableCollection<UserCourse>> SavedCoursesChanged;
         public event Action<Models.Course> CourseSelected;
@@ -27,76 +37,60 @@ namespace FLS
             
             _courses = new ObservableCollection<Course>();
             _savedCourses = new ObservableCollection<UserCourse>();
+            _apiClient = new ApiClient();
             
-            // Set up CollectionViewSource for filtering
-            _coursesViewSource = new CollectionViewSource();
-            _coursesViewSource.Source = _courses;
-            _coursesViewSource.Filter += CoursesViewSource_Filter;
-            
-            CoursesItemsControl.ItemsSource = _coursesViewSource.View;
-            LoadCourses();
+            LoadCoursesAsync();
         }
 
-        private void LoadCourses()
+        private async Task LoadCoursesAsync()
         {
-            if (_courses.Count == 0)
+            try
             {
-                var dummyCourses = new List<Course>
+                var response = await _apiClient.GetCoursesAsync(_currentPage, _pageSize, _currentSearch);
+                
+                if (response.Success && response.Data != null)
                 {
-                    new Course
+                    _courses.Clear();
+                    
+                    foreach (var courseDto in response.Data.Data)
                     {
-                        Id = _nextCourseId++,
-                        Name = "Introduction to Programming",
-                        Code = "CS101",
-                        Description = "Fundamentals of programming and problem-solving",
-                        Credits = 3,
-                        CreatedDate = DateTime.Now.AddDays(-30)
-                    },
-                    new Course
-                    {
-                        Id = _nextCourseId++,
-                        Name = "Data Structures and Algorithms",
-                        Code = "CS201",
-                        Description = "Advanced data structures and algorithm design",
-                        Credits = 4,
-                        CreatedDate = DateTime.Now.AddDays(-20)
-                    },
-                    new Course
-                    {
-                        Id = _nextCourseId++,
-                        Name = "Database Systems",
-                        Code = "CS301",
-                        Description = "Design and implementation of database systems",
-                        Credits = 3,
-                        CreatedDate = DateTime.Now.AddDays(-10)
-                    },
-                    new Course
-                    {
-                        Id = _nextCourseId++,
-                        Name = "Web Development",
-                        Code = "CS401",
-                        Description = "Modern web development with HTML, CSS, and JavaScript",
-                        Credits = 3,
-                        CreatedDate = DateTime.Now.AddDays(-5)
-                    },
-                    new Course
-                    {
-                        Id = _nextCourseId++,
-                        Name = "Machine Learning",
-                        Code = "CS501",
-                        Description = "Introduction to machine learning algorithms and applications",
-                        Credits = 4,
-                        CreatedDate = DateTime.Now.AddDays(-2)
+                        _courses.Add(new Course
+                        {
+                            Id = courseDto.Id,
+                            Name = courseDto.Name,
+                            Code = courseDto.Code,
+                            Description = courseDto.Description ?? string.Empty,
+                            Credits = 0, 
+                            CreatedDate = DateTime.Now 
+                        });
                     }
-                };
-
-                foreach (var course in dummyCourses)
+                    
+                    if (response.Data.Pagination != null)
+                    {
+                        _totalPages = response.Data.Pagination.TotalPages;
+                        _totalCount = response.Data.Pagination.TotalCount;
+                        _currentPage = response.Data.Pagination.Page;
+                    }
+                    
+                    UpdatePaginationUI();
+                }
+                else
                 {
-                    _courses.Add(course);
+                    MessageBox.Show(
+                        response.Message ?? "Failed to load courses",
+                        "Error",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Error);
                 }
             }
-
-            UpdateEmptyState();
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    $"Error loading courses: {ex.Message}",
+                    "Error",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+            }
         }
 
         private void AddCourseButton_Click(object sender, RoutedEventArgs e)
@@ -117,7 +111,7 @@ namespace FLS
             ClearForm();
         }
 
-        private void SaveCourseFormButton_Click(object sender, RoutedEventArgs e)
+        private async void SaveCourseFormButton_Click(object sender, RoutedEventArgs e)
         {
             if (string.IsNullOrWhiteSpace(CourseNameTextBox.Text) || 
                 string.IsNullOrWhiteSpace(CourseCodeTextBox.Text))
@@ -126,65 +120,73 @@ namespace FLS
                 return;
             }
 
-            var course = new Course
+            try
             {
-                Id = _nextCourseId++,
-                Name = CourseNameTextBox.Text.Trim(),
-                Code = CourseCodeTextBox.Text.Trim(),
-                Description = CourseDescriptionTextBox.Text.Trim(),
-                Credits = int.TryParse(CourseCreditsTextBox.Text, out int credits) ? credits : 0,
-                CreatedDate = DateTime.Now
-            };
+                var courseDto = new CourseDTO
+                {
+                    Name = CourseNameTextBox.Text.Trim(),
+                    Code = CourseCodeTextBox.Text.Trim(),
+                    Description = CourseDescriptionTextBox.Text.Trim()
+                };
 
-            _courses.Add(course);
-            MessageBox.Show("Course added successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
-            AddCourseForm.Visibility = Visibility.Collapsed;
-            ClearForm();
-            _coursesViewSource.View.Refresh();
-            UpdateEmptyState();
+                MessageBox.Show(
+                    "Course creation via API is not yet implemented. Please use the API directly or add the CreateCourse endpoint.",
+                    "Info",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+                
+                
+                AddCourseForm.Visibility = Visibility.Collapsed;
+                ClearForm();
+                _currentPage = 1;
+                await LoadCoursesAsync();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    $"Error creating course: {ex.Message}",
+                    "Error",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+            }
         }
 
         private void SaveCourseButton_Click(object sender, RoutedEventArgs e)
         {
-            if (sender is Button button && button.Tag is int courseId)
+            if (sender is Button button && button.Tag is Course course)
             {
-                var course = _courses.FirstOrDefault(c => c.Id == courseId);
-                if (course != null)
+                if (course == null) return;
+        
+                if (_savedCourses.Any(uc => uc.Course.Id == course.Id))
                 {
-                    // Check if course is already saved
-                    if (_savedCourses.Any(uc => uc.Course.Id == courseId))
-                    {
-                        MessageBox.Show("This course is already saved!", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
-                        return;
-                    }
+                    MessageBox.Show("This course is already saved!", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
+                    return;
+                }
 
-                    // Prompt user for section number
-                    var sectionDialog = new SectionInputDialog(course.Name)
+                var sectionDialog = new SectionInputDialog(course.Name)
+                {
+                    Owner = Window.GetWindow(this)
+                };
+
+                if (sectionDialog.ShowDialog() == true && sectionDialog.IsSaved)
+                {
+                    var userCourse = new UserCourse
                     {
-                        Owner = Window.GetWindow(this)
+                        Id = _nextUserCourseId++,
+                        Course = course,
+                        Section = sectionDialog.Section,
+                        EnrolledDate = DateTime.Now
                     };
 
-                    // Only save if user provides section and clicks Save
-                    if (sectionDialog.ShowDialog() == true && sectionDialog.IsSaved)
-                    {
-                        var userCourse = new UserCourse
-                        {
-                            Id = _nextUserCourseId++,
-                            Course = course,
-                            Section = sectionDialog.Section,
-                            EnrolledDate = DateTime.Now
-                        };
-
-                        _savedCourses.Add(userCourse);
-                        SavedCoursesChanged?.Invoke(_savedCourses);
-                        
-                        MessageBox.Show(
-                            $"Course '{course.Name}' (Section {userCourse.Section}) has been saved!\n\n" +
-                            "This information will be used to generate your timetable later.",
-                            "Course Saved",
-                            MessageBoxButton.OK,
-                            MessageBoxImage.Information);
-                    }
+                    _savedCourses.Add(userCourse);
+                    SavedCoursesChanged?.Invoke(_savedCourses);
+                    
+                    MessageBox.Show(
+                        $"Course '{course.Name}' (Section {userCourse.Section}) has been saved!\n\n" +
+                        "This information will be used to generate your timetable later.",
+                        "Course Saved",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Information);
                 }
             }
         }
@@ -209,73 +211,74 @@ namespace FLS
             CourseCreditsTextBox.Clear();
         }
 
-        private void UpdateEmptyState()
+        private void UpdatePaginationUI()
         {
-            int filteredCount = 0;
-            if (_coursesViewSource?.View != null)
-            {
-                foreach (var item in _coursesViewSource.View)
-                {
-                    filteredCount++;
-                }
-            }
+            CoursesItemsControl.ItemsSource = _courses;
+            PageInfoText.Text = $"Page {_currentPage} of {_totalPages} (Total: {_totalCount})";
+            PrevPageButton.IsEnabled = _currentPage > 1;
+            NextPageButton.IsEnabled = _currentPage < _totalPages;
             
-            EmptyStateText.Visibility = filteredCount == 0 ? Visibility.Visible : Visibility.Collapsed;
+            EmptyStateText.Visibility = _courses.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
             
-            if (!string.IsNullOrWhiteSpace(SearchTextBox?.Text) && filteredCount == 0 && _courses.Count > 0)
+            if (!string.IsNullOrWhiteSpace(_currentSearch) && _courses.Count == 0 && _totalCount > 0)
             {
                 EmptyStateText.Text = "No courses found matching your search.";
             }
             else if (_courses.Count == 0)
             {
-                EmptyStateText.Text = "No courses available. Click 'Add Course' to get started!";
+                EmptyStateText.Text = "No courses available.";
             }
-            else
+        }
+        
+        private async void PrevPage_Click(object sender, RoutedEventArgs e)
+        {
+            if (_currentPage > 1)
             {
-                EmptyStateText.Text = "No courses available. Click 'Add Course' to get started!";
+                _currentPage--;
+                await LoadCoursesAsync();
+            }
+        }
+        
+        private async void NextPage_Click(object sender, RoutedEventArgs e)
+        {
+            if (_currentPage < _totalPages)
+            {
+                _currentPage++;
+                await LoadCoursesAsync();
             }
         }
 
-        private void SearchTextBox_TextChanged(object sender, TextChangedEventArgs e)
+        private async void SearchTextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
-            if (_coursesViewSource != null)
-            {
-                _coursesViewSource.View.Refresh();
-                UpdateEmptyState();
-            }
+            _searchCancellationTokenSource?.Cancel();
+            _searchCancellationTokenSource = new CancellationTokenSource();
             
-            ClearSearchButton.Visibility = string.IsNullOrWhiteSpace(SearchTextBox.Text) 
+            var searchText = SearchTextBox?.Text?.Trim() ?? string.Empty;
+            _currentSearch = searchText;
+            
+            ClearSearchButton.Visibility = string.IsNullOrWhiteSpace(searchText) 
                 ? Visibility.Collapsed 
                 : Visibility.Visible;
+            
+            _currentPage = 1;
+            
+            try
+            {
+                await Task.Delay(500, _searchCancellationTokenSource.Token);
+                await LoadCoursesAsync();
+            }
+            catch (TaskCanceledException)
+            {
+            }
         }
 
-        private void ClearSearchButton_Click(object sender, RoutedEventArgs e)
+        private async void ClearSearchButton_Click(object sender, RoutedEventArgs e)
         {
             SearchTextBox.Clear();
             ClearSearchButton.Visibility = Visibility.Collapsed;
-        }
-
-        private void CoursesViewSource_Filter(object sender, FilterEventArgs e)
-        {
-            if (e.Item is Course course)
-            {
-                string searchText = SearchTextBox?.Text?.ToLower() ?? string.Empty;
-                
-                if (string.IsNullOrWhiteSpace(searchText))
-                {
-                    e.Accepted = true;
-                }
-                else
-                {
-                    e.Accepted = course.Name.ToLower().Contains(searchText) ||
-                                 course.Code.ToLower().Contains(searchText) ||
-                                 course.Description.ToLower().Contains(searchText);
-                }
-            }
-            else
-            {
-                e.Accepted = false;
-            }
+            _currentSearch = string.Empty;
+            _currentPage = 1;
+            await LoadCoursesAsync();
         }
 
         public ObservableCollection<UserCourse> GetSavedCourses()
@@ -288,7 +291,7 @@ namespace FLS
             return _courses;
         }
 
-        public void RemoveFromSaved(int courseId)
+        public void RemoveFromSaved(string courseId)
         {
             var userCourse = _savedCourses.FirstOrDefault(uc => uc.Course.Id == courseId);
             if (userCourse != null)
@@ -299,4 +302,5 @@ namespace FLS
         }
     }
 }
+
 

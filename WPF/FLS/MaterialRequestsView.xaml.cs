@@ -1,8 +1,11 @@
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using FLS.DL;
+using FLS.Helpers;
 using FLS.Models;
 
 namespace FLS
@@ -10,75 +13,184 @@ namespace FLS
     public partial class MaterialRequestsView : UserControl
     {
         private ObservableCollection<MaterialRequest> _requests;
+        private readonly ApiClient _apiClient;
+        private bool _isAdminView;
 
-        public MaterialRequestsView()
+        public MaterialRequestsView(bool isAdminView = false)
         {
             InitializeComponent();
             _requests = new ObservableCollection<MaterialRequest>();
+            _apiClient = new ApiClient();
+            _isAdminView = isAdminView;
             RequestsListView.ItemsSource = _requests;
-            LoadDummyRequests();
+            Loaded += MaterialRequestsView_Loaded;
         }
 
-        private void LoadDummyRequests()
+        private async void MaterialRequestsView_Loaded(object sender, RoutedEventArgs e)
         {
-            _requests.Add(new MaterialRequest(1, "CS101", "Assignment", "Ali Ahmed", DateTime.Now.AddDays(-2), "Pending", "assignment1.pdf"));
-            _requests.Add(new MaterialRequest(2, "MATH201", "Quiz", "Sara Khan", DateTime.Now.AddDays(-1), "Pending", "quiz2.pdf"));
-            _requests.Add(new MaterialRequest(3, "PHY101", "Lab Report", "Hassan Ali", DateTime.Now.AddDays(-3), "Pending", "lab_report.pdf"));
-            _requests.Add(new MaterialRequest(4, "CS102", "Project", "Fatima Noor", DateTime.Now.AddDays(-5), "Approved", "project.zip"));
-            _requests.Add(new MaterialRequest(5, "ENG102", "Essay", "Usman Tariq", DateTime.Now.AddDays(-4), "Pending", "essay.docx"));
+            await LoadRequests();
         }
 
-        private void AcceptButton_Click(object sender, RoutedEventArgs e)
+        private async Task LoadRequests()
+        {
+            try
+            {
+                if (_isAdminView)
+                {   
+                    await LoadPendingRequests();
+                }
+                else
+                {
+                    await LoadMyRequests();
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error loading requests: {ex.Message}", "Error",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private async Task LoadMyRequests()
+        {
+            var userId = AppSettings.GetCurrentUserId();
+            if (string.IsNullOrWhiteSpace(userId))
+            {
+                MessageBox.Show("Please log in to view your requests.", "Authentication Required",
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            var response = await _apiClient.GetMyRequestsAsync(userId);
+            if (response.Success && response.Data != null)
+            {
+                _requests.Clear();
+                foreach (var request in response.Data)
+                {
+                    _requests.Add(request);
+                }
+            }
+            else
+            {
+                MessageBox.Show(response.Message ?? "Failed to load requests.", "Error",
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+        }
+
+        private async Task LoadPendingRequests()
+        {
+            var response = await _apiClient.GetPendingRequestsAsync();
+            if (response.Success && response.Data != null)
+            {
+                _requests.Clear();
+                foreach (var request in response.Data)
+                {
+                    _requests.Add(request);
+                }
+            }
+            else
+            {
+                MessageBox.Show(response.Message ?? "Failed to load pending requests.", "Error",
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+        }
+
+        private async void AcceptButton_Click(object sender, RoutedEventArgs e)
         {
             var button = sender as Button;
-            if (button?.Tag is int requestId)
+            if (button?.Tag is string requestId)
             {
                 var request = _requests.FirstOrDefault(r => r.Id == requestId);
                 if (request != null)
                 {
-                    request.Status = "Approved";
-                    MessageBox.Show($"Material request for {request.CourseCode} has been approved!",
-                        "Request Approved", MessageBoxButton.OK, MessageBoxImage.Information);
-                    
-                    RefreshView();
+                    button.IsEnabled = false;
+                    button.Content = "Approving...";
+
+                    try
+                    {
+                        var response = await _apiClient.ApproveRequestAsync(requestId);
+                        if (response.Success)
+                        {
+                            request.Status = "Approved";
+                            MessageBox.Show($"Material request for {request.CourseName} has been approved!",
+                                "Request Approved", MessageBoxButton.OK, MessageBoxImage.Information);
+                            
+                            await LoadRequests();
+                        }
+                        else
+                        {
+                            MessageBox.Show(response.Message ?? "Failed to approve request.",
+                                "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"Error approving request: {ex.Message}", "Error",
+                            MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
+                    finally
+                    {
+                        button.IsEnabled = true;
+                        button.Content = "Approve";
+                    }
                 }
             }
         }
 
-        private void RejectButton_Click(object sender, RoutedEventArgs e)
+        private async void RejectButton_Click(object sender, RoutedEventArgs e)
         {
             var button = sender as Button;
-            if (button?.Tag is int requestId)
+            if (button?.Tag is string requestId)
             {
                 var request = _requests.FirstOrDefault(r => r.Id == requestId);
                 if (request != null)
                 {
                     var result = MessageBox.Show(
-                        $"Are you sure you want to reject the material request for {request.CourseCode}?",
+                        $"Are you sure you want to reject the material request for {request.CourseName}?",
                         "Confirm Rejection",
                         MessageBoxButton.YesNo,
                         MessageBoxImage.Warning);
 
                     if (result == MessageBoxResult.Yes)
                     {
-                        request.Status = "Rejected";
-                        MessageBox.Show($"Material request for {request.CourseCode} has been rejected.",
-                            "Request Rejected", MessageBoxButton.OK, MessageBoxImage.Information);
-                        
-                        RefreshView();
+                        button.IsEnabled = false;
+                        button.Content = "Rejecting...";
+
+                        try
+                        {
+                            var response = await _apiClient.RejectRequestAsync(requestId);
+                            if (response.Success)
+                            {
+                                request.Status = "Rejected";
+                                MessageBox.Show($"Material request for {request.CourseName} has been rejected.",
+                                    "Request Rejected", MessageBoxButton.OK, MessageBoxImage.Information);
+                                        
+                                await LoadRequests();
+                            }
+                            else
+                            {
+                                MessageBox.Show(response.Message ?? "Failed to reject request.",
+                                    "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            MessageBox.Show($"Error rejecting request: {ex.Message}", "Error",
+                                MessageBoxButton.OK, MessageBoxImage.Error);
+                        }
+                        finally
+                        {
+                            button.IsEnabled = true;
+                            button.Content = "Reject";
+                        }
                     }
                 }
             }
         }
 
-        private void RefreshView()
+        public async Task RefreshView()
         {
-            var temp = _requests.ToList();
-            _requests.Clear();
-            foreach (var item in temp)
-            {
-                _requests.Add(item);
-            }
+            await LoadRequests();
         }
     }
 }

@@ -27,7 +27,6 @@ namespace FLS_API.Controllers
             if (!ModelState.IsValid)
                 return ApiResponse.ErrorResponse("Invalid request data.", "VALIDATION_ERROR").ToActionResult();
 
-            // Ensure we're using the actual email from the request, not any default value
             var email = signUpDto.Email?.Trim().ToLower() ?? string.Empty;
             var fullName = signUpDto.FullName?.Trim() ?? string.Empty;
             var password = signUpDto.Password ?? string.Empty;
