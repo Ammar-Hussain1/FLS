@@ -31,3 +31,11 @@ Thumbs.db
 build_output*.txt
 timetable_structure.txt
 ExcelAnalyzer/
+
+
+example_run.py
+import_drive_materials.py
+DRIVE_IMPORT_README.md
+requirements.txt
+SUPABASE_KEY_SETUP.md
+__pycache__/*
