@@ -29,7 +29,22 @@ namespace FLS
         {
             InitializeComponent();
             _messages = new ObservableCollection<ChatMessage>();
-            _historyRepository = new ChatHistoryRepository();
+
+            // Use per-user chat history file so different users don't share conversations
+            string? initialUserId = null;
+            try
+            {
+                if (SessionManager.Instance.IsLoggedIn())
+                {
+                    initialUserId = SessionManager.Instance.GetCurrentUserId();
+                }
+            }
+            catch
+            {
+                initialUserId = null;
+            }
+
+            _historyRepository = new ChatHistoryRepository(initialUserId);
             MessagesContainer.ItemsSource = _messages;
 
             // Check if API key is configured
@@ -123,7 +138,8 @@ namespace FLS
             }
 
             // Add user message to UI
-            _messages.Add(new ChatMessage(message, true));
+            var userMessageObj = new ChatMessage(message, true);
+            _messages.Add(userMessageObj);
             MessageInput.Text = string.Empty;
             ScrollToBottom();
 
@@ -145,9 +161,30 @@ namespace FLS
 
                 // Get current user ID from session
                 var userId = SessionManager.Instance.GetCurrentUserId();
-                
+
+                // Build recent conversation history (excluding current message and loading)
+                var historyTurns = new System.Collections.Generic.List<ChatTurnDTO>();
+                const int maxMessagesForHistory = 16;
+                foreach (var m in _messages)
+                {
+                    if (m == loadingMessage || m == userMessageObj)
+                        continue;
+
+                    // Take last N messages
+                    // We'll collect first then trim
+                    historyTurns.Add(new ChatTurnDTO
+                    {
+                        Role = m.IsUserMessage ? "user" : "assistant",
+                        Message = m.Message
+                    });
+                }
+                if (historyTurns.Count > maxMessagesForHistory)
+                {
+                    historyTurns = historyTurns.GetRange(historyTurns.Count - maxMessagesForHistory, maxMessagesForHistory);
+                }
+
                 // Call business logic layer
-                var response = await _chatService.SendMessageAsync(userId, message);
+                var response = await _chatService.SendMessageAsync(userId, message, historyTurns);
 
                 // Remove loading and add AI response
                 _messages.Remove(loadingMessage);

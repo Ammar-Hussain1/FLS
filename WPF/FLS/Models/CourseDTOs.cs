@@ -47,5 +47,17 @@ namespace FLS.Models
         [JsonPropertyName("pagination")]
         public PaginationMetadata Pagination { get; set; } = new();
     }
+
+    public class AddUserCourseRequest
+    {
+        [JsonPropertyName("userId")]
+        public string UserId { get; set; } = string.Empty;
+
+        [JsonPropertyName("courseId")]
+        public string CourseId { get; set; } = string.Empty;
+
+        [JsonPropertyName("sectionName")]
+        public string? SectionName { get; set; }
+    }
 }
 

@@ -31,21 +31,28 @@
                    TextWrapping="Wrap"/>
         
         <TextBlock Grid.Row="1"
-                   Text="Please enter the section number you are enrolled in:"
+                   Name="InstructionText"
+                   Text="Select your section from the list below (or type it if needed):"
                    FontSize="14"
                    Foreground="{StaticResource Primary}"
-                   Margin="0,0,0,15"/>
+                   Margin="0,0,0,15"
+                   TextWrapping="Wrap"/>
         
-        <TextBox Grid.Row="2"
-                 Name="SectionTextBox"
-                 FontSize="16"
-                 Height="40"
-                 Padding="5"
-                 BorderBrush="{StaticResource Accent}"
-                 BorderThickness="2"
-                 VerticalContentAlignment="Center"
-                 KeyDown="SectionTextBox_KeyDown"
-                 Margin="0,0,0,20"/>
+        <!-- ComboBox used instead of plain TextBox so we can show all sections
+             for this course while still allowing the user to type a custom value
+             when no sections are available from the timetable. -->
+        <ComboBox Grid.Row="2"
+                  Name="SectionComboBox"
+                  FontSize="16"
+                  Height="40"
+                  Padding="5"
+                  BorderBrush="{StaticResource Accent}"
+                  BorderThickness="2"
+                  IsEditable="True"
+                  IsTextSearchEnabled="True"
+                  StaysOpenOnEdit="True"
+                  KeyDown="SectionComboBox_KeyDown"
+                  Margin="0,0,0,20"/>
         
         <StackPanel Grid.Row="3"
                     Orientation="Horizontal"

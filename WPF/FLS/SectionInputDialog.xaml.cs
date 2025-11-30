@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Windows;
 using System.Windows.Input;
 
@@ -8,23 +11,38 @@ namespace FLS
         public string Section { get; private set; } = string.Empty;
         public bool IsSaved { get; private set; } = false;
 
-        public SectionInputDialog(string courseName)
+        private readonly List<string> _availableSections;
+
+        public SectionInputDialog(string courseName, IEnumerable<string>? availableSections = null)
         {
             InitializeComponent();
             CourseNameText.Text = $"Course: {courseName}";
-            SectionTextBox.Text = string.Empty;
-            SectionTextBox.Focus();
+            
+            _availableSections = availableSections?
+                .Where(s => !string.IsNullOrWhiteSpace(s))
+                .Select(s => s.Trim())
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .OrderBy(s => s)
+                .ToList() ?? new List<string>();
+
+            if (_availableSections.Any())
+            {
+                SectionComboBox.ItemsSource = _availableSections;
+                SectionComboBox.SelectedIndex = 0;
+            }
+
+            SectionComboBox.Focus();
         }
 
         private void SaveButton_Click(object sender, RoutedEventArgs e)
         {
-            Section = SectionTextBox.Text.Trim();
+            Section = SectionComboBox.Text.Trim();
             
             if (string.IsNullOrWhiteSpace(Section))
             {
-                MessageBox.Show("Please enter a section number.", "Validation Error", 
+                MessageBox.Show("Please select or enter a section.", "Validation Error", 
                     MessageBoxButton.OK, MessageBoxImage.Warning);
-                SectionTextBox.Focus();
+                SectionComboBox.Focus();
                 return;
             }
 
@@ -39,7 +57,7 @@ namespace FLS
             Close();
         }
 
-        private void SectionTextBox_KeyDown(object sender, KeyEventArgs e)
+        private void SectionComboBox_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.Key == Key.Enter)
             {

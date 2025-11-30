@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Navigation;
+using FLS.DL;
 using FLS.Models;
 using FLS.Services;
 
@@ -19,7 +20,8 @@ namespace FLS
     public partial class UserPlaylistView : UserControl
     {
         private readonly HttpClient _httpClient;
-        private readonly string _apiBaseUrl = "http://localhost:5000/api";
+        private readonly string _apiBaseUrl = "http://localhost:5232/api";
+        private readonly ApiClient _apiClient;
 
         private ObservableCollection<Course> _allCourses;
         private ObservableCollection<Course> _displayedCourses;
@@ -30,11 +32,13 @@ namespace FLS
         private int _pageSize = 5;
         private int _totalPages = 1;
         private string? _selectedCourseId = null;
+        private HashSet<string> _userCourseCodes = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
         public UserPlaylistView()
         {
             InitializeComponent();
             _httpClient = new HttpClient();
+            _apiClient = new ApiClient();
             LoadDataAsync();
         }
 
@@ -43,6 +47,7 @@ namespace FLS
             try
             {
                 await LoadUserCoursesAsync();
+                await LoadUserSavedCourseCodesAsync();
                 await LoadCommunityPlaylistsAsync();
                 await LoadPlaylistRequestsAsync();
                 UpdatePagination();
@@ -56,24 +61,83 @@ namespace FLS
 
         private async Task LoadUserCoursesAsync()
         {
-            // For now, using dummy courses. In production, fetch user's enrolled courses from API
-            _allCourses = new ObservableCollection<Course>
+            _allCourses = new ObservableCollection<Course>();
+
+            try
             {
-                new Course { Id = "1", Name = "Introduction to Programming", Code = "CS101", Credits = 3 },
-                new Course { Id = "2", Name = "Data Structures", Code = "CS201", Credits = 4 },
-                new Course { Id = "3", Name = "Database Systems", Code = "CS301", Credits = 3 },
-                new Course { Id = "4", Name = "Web Development", Code = "CS202", Credits = 3 },
-                new Course { Id = "5", Name = "Operating Systems", Code = "CS302", Credits = 4 },
-                new Course { Id = "6", Name = "Computer Networks", Code = "CS303", Credits = 3 },
-                new Course { Id = "7", Name = "Software Engineering", Code = "CS401", Credits = 4 },
-                new Course { Id = "8", Name = "Artificial Intelligence", Code = "CS402", Credits = 3 },
-                new Course { Id = "9", Name = "Machine Learning", Code = "CS403", Credits = 4 },
-                new Course { Id = "10", Name = "Mobile App Development", Code = "CS304", Credits = 3 },
-                new Course { Id = "11", Name = "Cloud Computing", Code = "CS404", Credits = 3 },
-                new Course { Id = "12", Name = "Cybersecurity", Code = "CS405", Credits = 4 }
-            };
+                // Load all courses from the API so that the user can
+                // request playlists for any course in the system.
+                int currentPage = 1;
+                int pageSize = 100;
+                bool hasMorePages = true;
+
+                while (hasMorePages)
+                {
+                    var response = await _apiClient.GetCoursesAsync(currentPage, pageSize);
+                    if (response.Success && response.Data != null)
+                    {
+                        foreach (var courseDto in response.Data.Data)
+                        {
+                            _allCourses.Add(new Course
+                            {
+                                Id = courseDto.Id,
+                                Code = courseDto.Code,
+                                Name = courseDto.Name,
+                                Description = courseDto.Description ?? string.Empty,
+                                Credits = 0,
+                                CreatedDate = DateTime.Now
+                            });
+                        }
+
+                        hasMorePages = response.Data.Pagination?.HasNextPage ?? false;
+                        currentPage++;
+                    }
+                    else
+                    {
+                        hasMorePages = false;
+                    }
+                }
+            }
+            catch
+            {
+                // If course loading fails, fall back to an empty list;
+                // the rest of the view will still function but without
+                // a course dropdown for new requests.
+                _allCourses.Clear();
+            }
+
+            // Sort courses alphabetically by name for a nicer dropdown
+            var sortedCourses = _allCourses.OrderBy(c => c.Name).ToList();
+            _allCourses = new ObservableCollection<Course>(sortedCourses);
 
             CourseComboBox.ItemsSource = _allCourses;
+        }
+
+        private async Task LoadUserSavedCourseCodesAsync()
+        {
+            _userCourseCodes.Clear();
+
+            try
+            {
+                var userId = SessionManager.Instance.GetCurrentUserId();
+                var response = await _apiClient.GetMyCoursesAsync(userId);
+
+                if (response.Success && response.Data != null)
+                {
+                    foreach (var userCourse in response.Data)
+                    {
+                        if (!string.IsNullOrWhiteSpace(userCourse.CourseCode))
+                        {
+                            _userCourseCodes.Add(userCourse.CourseCode.Trim());
+                        }
+                    }
+                }
+            }
+            catch
+            {
+                // If this fails, we simply won't filter by saved courses,
+                // but the rest of the playlist view will still function.
+            }
         }
 
         private async Task LoadCommunityPlaylistsAsync()
@@ -130,10 +194,19 @@ namespace FLS
 
         private void UpdatePagination()
         {
-            _totalPages = (int)Math.Ceiling((double)_allCourses.Count / _pageSize);
+            // Only show playlist courses that correspond to the user's saved/enrolled courses
+            var filteredCourses = _userCourseCodes != null && _userCourseCodes.Any()
+                ? _allCourses.Where(c => !string.IsNullOrWhiteSpace(c.Code) && _userCourseCodes.Contains(c.Code.Trim()))
+                : Enumerable.Empty<Course>();
+
+            var filteredList = filteredCourses.ToList();
+
+            _totalPages = filteredList.Count > 0
+                ? (int)Math.Ceiling((double)filteredList.Count / _pageSize)
+                : 1;
 
             var skip = (_currentPage - 1) * _pageSize;
-            _displayedCourses = new ObservableCollection<Course>(_allCourses.Skip(skip).Take(_pageSize));
+            _displayedCourses = new ObservableCollection<Course>(filteredList.Skip(skip).Take(_pageSize));
 
             CourseListControl.ItemsSource = _displayedCourses;
             PageInfoText.Text = $"Page {_currentPage} of {_totalPages}";
@@ -211,13 +284,35 @@ namespace FLS
             {
                 try
                 {
+                    // Call backend to increment like count and record user like
+                    var userId = SessionManager.Instance.GetCurrentUserId();
+                    var response = await _httpClient.PostAsync(
+                        $"{_apiBaseUrl}/Playlist/like/{playlist.Id}?userId={Uri.EscapeDataString(userId)}", null);
+
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        if ((int)response.StatusCode == 409)
+                        {
+                            MessageBox.Show("You have already liked this playlist.",
+                                "Already Liked", MessageBoxButton.OK, MessageBoxImage.Information);
+                        }
+                        else
+                        {
+                            MessageBox.Show("Failed to like playlist. Please try again.",
+                                "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                        }
+                        return;
+                    }
+
+                    // Update local model
                     playlist.Likes++;
 
-                    // Refresh the display
+                    // Refresh the display for the currently selected course
                     if (_selectedCourseId != null)
                     {
                         var coursePlaylists = _allCommunityPlaylists
                             .Where(p => p.CourseId == _selectedCourseId)
+                            .OrderByDescending(p => p.Likes)
                             .ToList();
 
                         PlaylistsControl.ItemsSource = null;

@@ -14,9 +14,6 @@ namespace FLS.Models
         [JsonPropertyName("courseName")]
         public string CourseName { get; set; } = string.Empty;
 
-        [JsonPropertyName("courseCode")]
-        public string CourseCode { get; set; } = string.Empty;
-
         [JsonPropertyName("title")]
         public string Title { get; set; } = string.Empty;
 

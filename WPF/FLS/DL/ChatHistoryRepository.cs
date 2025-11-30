@@ -16,7 +16,7 @@ namespace FLS.DL
         private const int MAX_MESSAGES = 50;
         private readonly string _historyPath;
 
-        public ChatHistoryRepository()
+        public ChatHistoryRepository(string? userId)
         {
             var appDataPath = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
@@ -28,7 +28,14 @@ namespace FLS.DL
                 Directory.CreateDirectory(appDataPath);
             }
 
-            _historyPath = Path.Combine(appDataPath, "chat_history.json");
+            // Use a per-user history file so different users don't share chat history
+            var key = string.IsNullOrWhiteSpace(userId) ? "anonymous" : userId;
+            foreach (var c in Path.GetInvalidFileNameChars())
+            {
+                key = key.Replace(c, '_');
+            }
+
+            _historyPath = Path.Combine(appDataPath, $"chat_history_{key}.json");
         }
 
         public List<ChatMessage> LoadHistory()

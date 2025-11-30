@@ -3,13 +3,13 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Net.Http;
-using System.Net.Http.Json;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using FLS.DL;
 using FLS.Models;
+using FLS.Services;
 
 namespace FLS
 {
@@ -45,8 +45,21 @@ namespace FLS
                 RefreshButton.IsEnabled = false;
                 RefreshButton.Content = "Loading...";
 
-                // Fetch timetable data from API
-                var timetableData = await _apiClient.GetTimetableAsync();
+                // Determine current user
+                string userId;
+                try
+                {
+                    userId = SessionManager.Instance.GetCurrentUserId();
+                }
+                catch (InvalidOperationException)
+                {
+                    _timetableRows.Clear();
+                    EnrolledSectionsText.Text = "Please log in to view your timetable.";
+                    return;
+                }
+
+                // Fetch user-specific timetable data from API
+                var timetableData = await _apiClient.GetMyTimetableAsync(userId);
 
                 if (timetableData == null || !timetableData.Any())
                 {
@@ -103,19 +116,20 @@ namespace FLS
                     ));
                 }
 
-                // Update enrolled sections text
-                var uniqueCourses = _allSlots
-                    .Where(s => s.CourseCode != "N/A")
-                    .Select(s => s.CourseCode)
+                // Update enrolled sections text (course code + section)
+                var enrolledDescriptions = _allSlots
+                    .Where(s => s.CourseCode != "N/A" && !string.IsNullOrWhiteSpace(s.Section))
+                    .Select(s => $"{s.CourseCode} ({s.Section})")
                     .Distinct()
+                    .OrderBy(x => x)
                     .ToList();
-                    
-                EnrolledSectionsText.Text = uniqueCourses.Any() 
-                    ? string.Join(", ", uniqueCourses) 
-                    : "No enrolled courses found.";
 
-                // Build timetable rows
-                BuildTimetableRows();
+                EnrolledSectionsText.Text = enrolledDescriptions.Any()
+                    ? string.Join(", ", enrolledDescriptions)
+                    : "No enrolled courses found for your account.";
+
+                // Build timetable rows directly from the filtered data we received
+                BuildTimetableRows(_allSlots);
             }
             catch (Exception ex)
             {
@@ -148,12 +162,12 @@ namespace FLS
             };
         }
 
-        private void BuildTimetableRows()
+        private void BuildTimetableRows(IReadOnlyCollection<TimetableSlot> slots)
         {
             _timetableRows.Clear();
 
-            // Extract all unique time slots from the data
-            var timeSlots = _allSlots
+            // Extract all unique time slots from the filtered data
+            var timeSlots = slots
                 .Select(s => s.Time)
                 .Where(t => !string.IsNullOrWhiteSpace(t))
                 .Distinct()
@@ -169,11 +183,11 @@ namespace FLS
             {
                 var row = new TimetableRow { TimeSlot = time };
 
-                row.Monday = CreateSlotCard(_allSlots.FirstOrDefault(s => s.Day == "Monday" && s.Time == time));
-                row.Tuesday = CreateSlotCard(_allSlots.FirstOrDefault(s => s.Day == "Tuesday" && s.Time == time));
-                row.Wednesday = CreateSlotCard(_allSlots.FirstOrDefault(s => s.Day == "Wednesday" && s.Time == time));
-                row.Thursday = CreateSlotCard(_allSlots.FirstOrDefault(s => s.Day == "Thursday" && s.Time == time));
-                row.Friday = CreateSlotCard(_allSlots.FirstOrDefault(s => s.Day == "Friday" && s.Time == time));
+                row.Monday = CreateSlotCard(slots.FirstOrDefault(s => s.Day == "Monday" && s.Time == time));
+                row.Tuesday = CreateSlotCard(slots.FirstOrDefault(s => s.Day == "Tuesday" && s.Time == time));
+                row.Wednesday = CreateSlotCard(slots.FirstOrDefault(s => s.Day == "Wednesday" && s.Time == time));
+                row.Thursday = CreateSlotCard(slots.FirstOrDefault(s => s.Day == "Thursday" && s.Time == time));
+                row.Friday = CreateSlotCard(slots.FirstOrDefault(s => s.Day == "Friday" && s.Time == time));
 
                 _timetableRows.Add(row);
             }
