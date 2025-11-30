@@ -1,5 +1,5 @@
 using FLS_API.BL;
-using FLS_API.Models;
+using FLS_API.DL.Models;
 using FLS_API.DTOs;
 using Microsoft.AspNetCore.Mvc;
 

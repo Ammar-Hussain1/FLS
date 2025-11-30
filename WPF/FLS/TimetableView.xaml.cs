@@ -2,9 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Net.Http;
+using System.Net.Http.Json;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using FLS.DL;
 using FLS.Models;
 
 namespace FLS
@@ -13,55 +17,153 @@ namespace FLS
     {
         private ObservableCollection<TimetableRow> _timetableRows;
         private List<TimetableSlot> _allSlots;
+        private readonly ApiClient _apiClient;
+        private readonly HttpClient _httpClient;
 
         public TimetableView()
         {
             InitializeComponent();
             _timetableRows = new ObservableCollection<TimetableRow>();
+            _apiClient = new ApiClient();
+            _httpClient = new HttpClient();
             TimetableGrid.ItemsSource = _timetableRows;
-            LoadDummyData();
+            LoadTimetableDataAsync();
         }
 
-        private void RefreshButton_Click(object sender, RoutedEventArgs e)
+        private async void RefreshButton_Click(object sender, RoutedEventArgs e)
         {
-            LoadDummyData();
+            await LoadTimetableDataAsync();
             MessageBox.Show("Timetable refreshed successfully!", "Refresh", 
                 MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
-        private void LoadDummyData()
+        private async Task LoadTimetableDataAsync()
+        {
+            try
+            {
+                // Show loading state
+                RefreshButton.IsEnabled = false;
+                RefreshButton.Content = "Loading...";
+
+                // Fetch timetable data from API
+                var timetableData = await _apiClient.GetTimetableAsync();
+
+                if (timetableData == null || !timetableData.Any())
+                {
+                    _timetableRows.Clear();
+                    EnrolledSectionsText.Text = "No timetable data available. Please contact administrator to upload timetable.";
+                    return;
+                }
+
+                // Fetch all courses to get course codes
+                var allCourses = new List<CourseDTO>();
+                int currentPage = 1;
+                int pageSize = 100;
+                bool hasMorePages = true;
+
+                while (hasMorePages)
+                {
+                    var coursesResponse = await _apiClient.GetCoursesAsync(currentPage, pageSize);
+                    if (coursesResponse.Success && coursesResponse.Data != null)
+                    {
+                        allCourses.AddRange(coursesResponse.Data.Data);
+                        hasMorePages = coursesResponse.Data.Pagination?.HasNextPage ?? false;
+                        currentPage++;
+                    }
+                    else
+                    {
+                        hasMorePages = false;
+                    }
+                }
+
+                var courseDict = allCourses.ToDictionary(c => c.Id, c => c);
+
+                // Map timetable data to TimetableSlot objects
+                _allSlots = new List<TimetableSlot>();
+                
+                foreach (var item in timetableData)
+                {
+                    var course = courseDict.GetValueOrDefault(item.CourseId);
+                    var courseCode = course?.Code ?? "N/A";
+                    var courseName = item.Subject ?? course?.Name ?? "Unknown Course";
+                    var sectionName = item.SectionName ?? "N/A";
+                    var instructorName = item.InstructorName ?? "N/A";
+                    
+                    // Normalize day name (Mon -> Monday, etc.)
+                    var dayName = NormalizeDayName(item.Day);
+                    
+                    _allSlots.Add(new TimetableSlot(
+                        dayName,
+                        item.Time ?? "TBA",
+                        courseCode,
+                        courseName,
+                        sectionName,
+                        item.Room ?? "TBA",
+                        instructorName
+                    ));
+                }
+
+                // Update enrolled sections text
+                var uniqueCourses = _allSlots
+                    .Where(s => s.CourseCode != "N/A")
+                    .Select(s => s.CourseCode)
+                    .Distinct()
+                    .ToList();
+                    
+                EnrolledSectionsText.Text = uniqueCourses.Any() 
+                    ? string.Join(", ", uniqueCourses) 
+                    : "No enrolled courses found.";
+
+                // Build timetable rows
+                BuildTimetableRows();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error loading timetable: {ex.Message}", "Error", 
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+                EnrolledSectionsText.Text = "Error loading timetable data.";
+            }
+            finally
+            {
+                RefreshButton.IsEnabled = true;
+                RefreshButton.Content = "🔄 Refresh";
+            }
+        }
+
+        private string NormalizeDayName(string day)
+        {
+            if (string.IsNullOrWhiteSpace(day)) return day;
+            
+            var dayLower = day.Trim().ToLower();
+            return dayLower switch
+            {
+                "mon" or "monday" => "Monday",
+                "tue" or "tuesday" => "Tuesday",
+                "wed" or "wednesday" => "Wednesday",
+                "thu" or "thursday" => "Thursday",
+                "fri" or "friday" => "Friday",
+                "sat" or "saturday" => "Saturday",
+                "sun" or "sunday" => "Sunday",
+                _ => day // Return original if not recognized
+            };
+        }
+
+        private void BuildTimetableRows()
         {
             _timetableRows.Clear();
-            _allSlots = new List<TimetableSlot>();
 
-            _allSlots.Add(new TimetableSlot("Monday", "08:30-10:00", "CS101", "Programming Fundamentals", "A", "Room 301", "Dr. Ahmed"));
-            _allSlots.Add(new TimetableSlot("Monday", "10:30-12:00", "MATH201", "Calculus II", "B", "Room 205", "Dr. Sara"));
-            _allSlots.Add(new TimetableSlot("Monday", "14:00-15:30", "ENG102", "English Composition", "C", "Room 110", "Ms. Fatima"));
+            // Extract all unique time slots from the data
+            var timeSlots = _allSlots
+                .Select(s => s.Time)
+                .Where(t => !string.IsNullOrWhiteSpace(t))
+                .Distinct()
+                .OrderBy(t => t)
+                .ToList();
 
-            _allSlots.Add(new TimetableSlot("Tuesday", "08:30-10:00", "CS102", "Data Structures", "A", "Room 302", "Dr. Khan"));
-            _allSlots.Add(new TimetableSlot("Tuesday", "12:30-14:00", "PHY101", "Physics I", "B", "Lab 201", "Dr. Ali"));
-
-            _allSlots.Add(new TimetableSlot("Wednesday", "08:30-10:00", "CS101", "Programming Fundamentals", "A", "Room 301", "Dr. Ahmed"));
-            _allSlots.Add(new TimetableSlot("Wednesday", "10:30-12:00", "MATH201", "Calculus II", "B", "Room 205", "Dr. Sara"));
-            _allSlots.Add(new TimetableSlot("Wednesday", "15:30-17:00", "CS102", "Data Structures", "A", "Lab 305", "Dr. Khan"));
-
-            _allSlots.Add(new TimetableSlot("Thursday", "10:30-12:00", "PHY101", "Physics I", "B", "Room 203", "Dr. Ali"));
-            _allSlots.Add(new TimetableSlot("Thursday", "14:00-15:30", "ENG102", "English Composition", "C", "Room 110", "Ms. Fatima"));
-
-            _allSlots.Add(new TimetableSlot("Friday", "08:30-10:00", "CS102", "Data Structures", "A", "Room 302", "Dr. Khan"));
-            _allSlots.Add(new TimetableSlot("Friday", "10:30-12:00", "MATH201", "Calculus II", "B", "Room 205", "Dr. Sara"));
-
-            var uniqueCourses = _allSlots.Select(s => $"{s.CourseCode} ({s.Section})").Distinct().ToList();
-            EnrolledSectionsText.Text = string.Join(", ", uniqueCourses);
-
-            var timeSlots = new List<string>
+            if (!timeSlots.Any())
             {
-                "08:30-10:00",
-                "10:30-12:00",
-                "12:30-14:00",
-                "14:00-15:30",
-                "15:30-17:00"
-            };
+                return;
+            }
 
             foreach (var time in timeSlots)
             {
@@ -76,6 +178,7 @@ namespace FLS
                 _timetableRows.Add(row);
             }
         }
+
 
         private Border CreateSlotCard(TimetableSlot? slot)
         {

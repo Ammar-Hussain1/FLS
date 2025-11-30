@@ -66,7 +66,7 @@ namespace WpfLoginApp
                     bool isAdmin = user.Role.Equals("admin", StringComparison.OrdinalIgnoreCase);
                     
                     // Initialize session
-                    SessionManager.Instance.Login(user.Id, user.FullName, user.Email, isAdmin);
+                    SessionManager.Instance.Login(user.Id.ToString(), user.FullName, user.Email, isAdmin);
 
                     // Check if admin
                     if (isAdmin)

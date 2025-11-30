@@ -1,7 +1,7 @@
 using Supabase.Postgrest.Attributes;
 using Supabase.Postgrest.Models;
 
-namespace FLS_API.Models
+namespace FLS_API.DL.Models
 {
     [Table("sections")]
     public class Section : BaseModel

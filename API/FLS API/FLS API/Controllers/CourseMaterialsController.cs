@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using FLS_API.BL;
 using FLS_API.DTOs;
-using FLS_API.Models;
+using FLS_API.DL.Models;
 using FLS_API.Utilities;
 using System.IO;
 

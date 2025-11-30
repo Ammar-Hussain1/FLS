@@ -113,7 +113,7 @@ namespace FLS
                     // Filter to show only current user's requests
                     var userId = SessionManager.Instance.GetCurrentUserId();
                     _playlistRequests = new ObservableCollection<PlaylistRequest>(
-                        allRequests.Where(r => r.UserId == userId));
+                        allRequests.Where(r => r.SubmittedBy == userId));
                 }
                 else
                 {
@@ -205,36 +205,27 @@ namespace FLS
             PlaylistsControl.ItemsSource = coursePlaylists;
         }
 
-        private void LikeButton_Click(object sender, RoutedEventArgs e)
+        private async void LikeButton_Click(object sender, RoutedEventArgs e)
         {
             if (sender is Button button && button.Tag is CommunityPlaylist playlist)
             {
-                playlist.Likes++;
-                
-                if (_selectedCourseId != null)
+                try
                 {
-                    var coursePlaylists = _allCommunityPlaylists
-                        .Where(p => p.CourseId == _selectedCourseId)
-                        .ToList();
+                    playlist.Likes++;
 
-                    if (response.IsSuccessStatusCode)
+                    // Refresh the display
+                    if (_selectedCourseId != null)
                     {
-                        playlist.Likes++;
+                        var coursePlaylists = _allCommunityPlaylists
+                            .Where(p => p.CourseId == _selectedCourseId)
+                            .ToList();
 
-                        // Refresh the display
-                        if (_selectedCourseId.HasValue)
-                        {
-                            var coursePlaylists = _allCommunityPlaylists
-                                .Where(p => p.CourseId == _selectedCourseId.Value)
-                                .ToList();
-
-                            PlaylistsControl.ItemsSource = null;
-                            PlaylistsControl.ItemsSource = coursePlaylists;
-                        }
-
-                        MessageBox.Show($"You liked \"{playlist.Name}\"!\nTotal likes: {playlist.Likes}",
-                            "Liked", MessageBoxButton.OK, MessageBoxImage.Information);
+                        PlaylistsControl.ItemsSource = null;
+                        PlaylistsControl.ItemsSource = coursePlaylists;
                     }
+
+                    MessageBox.Show($"You liked \"{playlist.Name}\"!\nTotal likes: {playlist.Likes}",
+                        "Liked", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
                 catch (Exception ex)
                 {

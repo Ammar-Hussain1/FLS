@@ -6,5 +6,6 @@ namespace FLS_API.BL
     {
         Task ParseAndSaveTimetableAsync(Stream fileStream);
         Task<List<TimeTable>> GetTimetableAsync();
+        Task<List<Section>> GetSectionsAsync();
     }
 }

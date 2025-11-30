@@ -24,7 +24,7 @@ namespace FLS.BL
             _apiKey = apiKey;
         }
 
-        public async Task<string> SendMessageAsync(Guid userId, string message)
+        public async Task<string> SendMessageAsync(string userId, string message)
         {
             if (string.IsNullOrWhiteSpace(message))
             {
@@ -38,7 +38,7 @@ namespace FLS.BL
 
             var request = new ChatRequest
             {
-                UserId = userId.ToString(),
+                UserId = userId,
                 Message = message,
                 ApiKey = _apiKey
             };

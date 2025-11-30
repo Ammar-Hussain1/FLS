@@ -110,7 +110,7 @@ namespace FLS_API.BL
                     {
                         courseObj = new Course
                         {
-                            Id = Guid.NewGuid(),
+                            Id = Guid.NewGuid().ToString(),
                             Name = courseName,
                             Code = courseCode,
                             Description = "Imported"
@@ -125,7 +125,7 @@ namespace FLS_API.BL
                     {
                         sectionObj = new Section
                         {
-                            Id = Guid.NewGuid(),
+                            Id = Guid.NewGuid().ToString(),
                             CourseId = courseObj.Id,
                             Name = sectionName,
                             InstructorName = instructorName
@@ -161,6 +161,12 @@ namespace FLS_API.BL
         public async Task<List<TimeTable>> GetTimetableAsync()
         {
             var response = await _supabase.Client.From<TimeTable>().Get();
+            return response.Models;
+        }
+
+        public async Task<List<Section>> GetSectionsAsync()
+        {
+            var response = await _supabase.Client.From<Section>().Get();
             return response.Models;
         }
 
@@ -217,7 +223,7 @@ private void ProcessSlot(IXLRow row, Dictionary<string, int> colMap,
 
     list.Add(new TimeTable
     {
-        Id = Guid.NewGuid(),
+        Id = Guid.NewGuid().ToString(),
         CourseId = course.Id,
         SectionId = section.Id,
         Day = day,
