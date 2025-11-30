@@ -1,3 +1,4 @@
+using System;
 using System.ComponentModel.DataAnnotations;
 using Supabase.Postgrest.Attributes;
 using Supabase.Postgrest.Models;
@@ -11,7 +12,7 @@ namespace FLS_API.DL.Models
         public Guid Id { get; set; }
         
         [Column("user_id")]
-        public int UserId { get; set; }
+        public Guid UserId { get; set; }
         
         [Required]
         [Column("content")]

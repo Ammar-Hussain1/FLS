@@ -11,7 +11,7 @@ namespace FLS.Models
 
     public class PlaylistRequest
     {
-        public int Id { get; set; }
+        public Guid Id { get; set; }
         public string Name { get; set; } = string.Empty;
         public string PlaylistName { get; set; } = string.Empty;
         public string Url { get; set; } = string.Empty;

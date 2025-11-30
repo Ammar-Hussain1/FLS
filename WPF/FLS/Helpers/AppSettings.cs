@@ -54,7 +54,7 @@ namespace FLS.Helpers
         public static void SetCurrentUser(UserResponse user)
         {
             _currentUser = user;
-            _currentUserId = user.Id;
+            _currentUserId = user.Id.ToString();
         }
 
         public static string? GetCurrentUserId()
