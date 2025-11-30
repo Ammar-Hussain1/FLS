@@ -22,16 +22,22 @@ namespace FLS_API.Controllers
             if (string.IsNullOrEmpty(dto.Name) || string.IsNullOrEmpty(dto.Url))
                 return BadRequest("Name and URL are required.");
 
+            if (string.IsNullOrEmpty(dto.UserId) || !Guid.TryParse(dto.UserId, out var userIdGuid))
+                return BadRequest("Valid user ID is required.");
+
             var request = new PlaylistRequest
             {
                 Name = dto.Name,
                 PlaylistName = dto.PlaylistName,
                 Url = dto.Url,
                 CourseId = dto.CourseId,
-                UserId = dto.UserId
+                UserId = userIdGuid
             };
 
             var result = await _playlistService.SubmitRequestAsync(request);
+
+            // Get course information to populate course name and code
+            Course? course = await _playlistService.GetCourseByIdAsync(result.CourseId);
 
             var responseDto = new PlaylistRequestDTO
             {
@@ -40,7 +46,9 @@ namespace FLS_API.Controllers
                 PlaylistName = result.PlaylistName,
                 Url = result.Url,
                 CourseId = result.CourseId,
-                UserId = result.UserId,
+                CourseName = course?.Name ?? string.Empty,
+                CourseCode = course?.Code ?? string.Empty,
+                UserId = result.UserId.ToString(),
                 Status = result.Status,
                 SubmittedDate = result.SubmittedDate
             };
@@ -52,16 +60,32 @@ namespace FLS_API.Controllers
         public async Task<IActionResult> GetAllRequests()
         {
             var requests = await _playlistService.GetAllRequestsAsync();
-            var dtos = requests.Select(r => new PlaylistRequestDTO
+            
+            // Get all courses to populate course name and code
+            var courses = await _playlistService.GetAllCoursesAsync();
+            
+            var dtos = requests.Select(r =>
             {
-                Id = r.Id,
-                Name = r.Name,
-                PlaylistName = r.PlaylistName,
-                Url = r.Url,
-                CourseId = r.CourseId,
-                UserId = r.UserId,
-                Status = r.Status,
-                SubmittedDate = r.SubmittedDate
+                var dto = new PlaylistRequestDTO
+                {
+                    Id = r.Id,
+                    Name = r.Name,
+                    PlaylistName = r.PlaylistName,
+                    Url = r.Url,
+                    CourseId = r.CourseId,
+                    UserId = r.UserId.ToString(),
+                    Status = r.Status,
+                    SubmittedDate = r.SubmittedDate
+                };
+                
+                // Populate course name and code if course is found
+                if (!string.IsNullOrWhiteSpace(r.CourseId) && courses.TryGetValue(r.CourseId, out var course))
+                {
+                    dto.CourseName = course.Name;
+                    dto.CourseCode = course.Code;
+                }
+                
+                return dto;
             }).ToList();
 
             return Ok(dtos);
@@ -96,12 +120,12 @@ namespace FLS_API.Controllers
         }
 
         [HttpGet("community")]
-        public async Task<IActionResult> GetCommunityPlaylists([FromQuery] Guid userId)
+        public async Task<IActionResult> GetCommunityPlaylists([FromQuery] string userId)
         {
-            if (userId == Guid.Empty)
+            if (string.IsNullOrEmpty(userId) || !Guid.TryParse(userId, out var userIdGuid))
                 return BadRequest("Valid user ID is required.");
 
-            var playlists = await _playlistService.GetPlaylistsForUserCoursesAsync(userId);
+            var playlists = await _playlistService.GetPlaylistsForUserCoursesAsync(userIdGuid);
 
             var dtos = playlists.Select(p => new CommunityPlaylistDTO
             {
@@ -116,16 +140,16 @@ namespace FLS_API.Controllers
         }
 
         [HttpPost("like/{id}")]
-        public async Task<IActionResult> LikePlaylist(Guid id, [FromQuery] Guid userId)
+        public async Task<IActionResult> LikePlaylist(Guid id, [FromQuery] string userId)
         {
             try
             {
-                if (userId == Guid.Empty)
+                if (string.IsNullOrEmpty(userId) || !Guid.TryParse(userId, out var userIdGuid))
                 {
                     return BadRequest("Valid user ID is required.");
                 }
 
-                await _playlistService.LikePlaylistAsync(id, userId);
+                await _playlistService.LikePlaylistAsync(id, userIdGuid);
                 return NoContent();
             }
             catch (InvalidOperationException ex)

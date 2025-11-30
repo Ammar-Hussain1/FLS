@@ -146,5 +146,29 @@ namespace FLS_API.BL
 
             return playlist;
         }
+
+        public async Task<Dictionary<string, Course>> GetAllCoursesAsync()
+        {
+            var coursesResponse = await _supabase.Client.From<Course>().Get();
+            return coursesResponse.Models.ToDictionary(c => c.Id, c => c);
+        }
+
+        public async Task<Course?> GetCourseByIdAsync(string courseId)
+        {
+            if (string.IsNullOrWhiteSpace(courseId))
+                return null;
+
+            try
+            {
+                var courseResponse = await _supabase.Client.From<Course>()
+                    .Where(c => c.Id == courseId)
+                    .Single();
+                return courseResponse;
+            }
+            catch
+            {
+                return null;
+            }
+        }
     }
 }

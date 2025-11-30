@@ -175,10 +175,9 @@ namespace FLS
                     var allRequests = await response.Content.ReadFromJsonAsync<List<PlaylistRequest>>()
                         ?? new List<PlaylistRequest>();
 
-                    // Filter to show only current user's requests
                     var userId = SessionManager.Instance.GetCurrentUserId();
                     _playlistRequests = new ObservableCollection<PlaylistRequest>(
-                        allRequests.Where(r => r.SubmittedBy == userId));
+                        allRequests.Where(r => r.UserId == userId || r.SubmittedBy == userId));
                 }
                 else
                 {
@@ -357,13 +356,21 @@ namespace FLS
             {
                 try
                 {
+                    var userId = SessionManager.Instance.GetCurrentUserId();
+                    if (string.IsNullOrWhiteSpace(userId))
+                    {
+                        MessageBox.Show("User ID is required.", "Error",
+                            MessageBoxButton.OK, MessageBoxImage.Error);
+                        return;
+                    }
+
                     var requestDto = new
                     {
                         Name = PlaylistNameInput.Text.Trim(),
                         PlaylistName = PlaylistNameInput.Text.Trim(),
                         Url = PlaylistUrlInput.Text.Trim(),
                         CourseId = selectedCourse.Id,
-                        UserId = SessionManager.Instance.GetCurrentUserId()
+                        UserId = userId
                     };
 
                     var json = JsonSerializer.Serialize(requestDto);
@@ -381,12 +388,14 @@ namespace FLS
                         PlaylistUrlInput.Text = string.Empty;
                         CourseComboBox.SelectedIndex = -1;
 
-                        // Reload requests
+                        // Reload requests and refresh data
                         await LoadPlaylistRequestsAsync();
+                        await RefreshUserCourses();
                     }
                     else
                     {
-                        MessageBox.Show("Failed to submit playlist request.", "Error",
+                        var errorContent = await response.Content.ReadAsStringAsync();
+                        MessageBox.Show($"Failed to submit playlist request: {errorContent}", "Error",
                             MessageBoxButton.OK, MessageBoxImage.Error);
                     }
                 }
@@ -401,6 +410,28 @@ namespace FLS
                 MessageBox.Show("Please fill in all fields and select a course.", "Validation Error",
                     MessageBoxButton.OK, MessageBoxImage.Warning);
             }
+        }
+
+        public async void RefreshData()
+        {
+            try
+            {
+                await LoadUserSavedCourseCodesAsync();
+                await LoadCommunityPlaylistsAsync();
+                await LoadPlaylistRequestsAsync();
+                UpdatePagination();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error refreshing data: {ex.Message}", "Error",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private async Task RefreshUserCourses()
+        {
+            await LoadUserSavedCourseCodesAsync();
+            UpdatePagination();
         }
     }
 }

@@ -6,7 +6,7 @@ namespace FLS_API.DL.DTOs
         public string PlaylistName { get; set; } = string.Empty;
         public string Url { get; set; } = string.Empty;
         public string CourseId { get; set; } = string.Empty;
-        public Guid UserId { get; set; }
+        public string UserId { get; set; } = string.Empty;
     }
 
     public class ApprovePlaylistDTO
@@ -40,7 +40,7 @@ namespace FLS_API.DL.DTOs
         public string CourseId { get; set; } = string.Empty;
         public string CourseName { get; set; } = string.Empty;
         public string CourseCode { get; set; } = string.Empty;
-        public Guid UserId { get; set; }
+        public string UserId { get; set; } = string.Empty;
         public string Status { get; set; } = string.Empty;
         public DateTime SubmittedDate { get; set; }
         public DateTime? ReviewedDate { get; set; }

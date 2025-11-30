@@ -197,6 +197,10 @@ namespace FLS
             {
                 _userPlaylistView = new UserPlaylistView();
             }
+            else
+            {
+                _userPlaylistView.RefreshData();
+            }
             ContentArea.Content = _userPlaylistView;
             _currentView = _userPlaylistView;
             UpdateTabSelection(UserPlaylistsTab);
