@@ -51,6 +51,9 @@ namespace FLS.Models
 
         [JsonPropertyName("description")]
         public string? Description { get; set; }
+
+        [JsonPropertyName("sectionName")]
+        public string? SectionName { get; set; }
     }
 
     public class CourseWithMaterialsDTO

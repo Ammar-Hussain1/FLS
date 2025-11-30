@@ -163,6 +163,7 @@ namespace FLS
             {
                 _timetableView = new TimetableView();
             }
+
             ContentArea.Content = _timetableView;
             _currentView = _timetableView;
             UpdateTabSelection(MyProgressTab);

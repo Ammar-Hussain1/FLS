@@ -8,6 +8,7 @@ using System.Windows;
 using System.Windows.Controls;
 using FLS.DL;
 using FLS.Models;
+using FLS.Services;
 
 namespace FLS
 {
@@ -78,6 +79,9 @@ namespace FLS
                         }
                     }
                 }
+
+                // Always attempt to load playlists for this course as well
+                await LoadPlaylistsForCourseAsync();
             }
             catch (Exception ex)
             {
@@ -113,6 +117,41 @@ namespace FLS
             }
 
             InitializeEmptyMaterialLists();
+        }
+
+        private async Task LoadPlaylistsForCourseAsync()
+        {
+            _playlists = new List<Playlist>();
+
+            if (string.IsNullOrWhiteSpace(_courseId))
+            {
+                return;
+            }
+
+            try
+            {
+                var userId = SessionManager.Instance.GetCurrentUserId();
+                var communityPlaylists = await _apiClient.GetCommunityPlaylistsAsync(userId);
+
+                var matching = communityPlaylists
+                    .Where(p => p.CourseId == _courseId)
+                    .ToList();
+
+                _playlists = matching
+                    .Select(p => new Playlist
+                    {
+                        Id = 0,
+                        Title = p.Name,
+                        Description = $"{p.Likes} likes",
+                        Link = p.Url,
+                        ThumbnailUrl = string.Empty
+                    })
+                    .ToList();
+            }
+            catch
+            {
+                _playlists = new List<Playlist>();
+            }
         }
 
         private void OrganizeMaterialsByCategory(Dictionary<string, List<MaterialResponseDTO>> materialsByCategory)

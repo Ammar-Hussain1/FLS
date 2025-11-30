@@ -10,6 +10,7 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using FLS.Models;
 using FLS.DL;
+using FLS.Services;
 
 namespace FLS
 {
@@ -39,7 +40,14 @@ namespace FLS
             _savedCourses = new ObservableCollection<UserCourse>();
             _apiClient = new ApiClient();
             
-            LoadCoursesAsync();
+            Loaded += AllCoursesView_Loaded;
+        }
+
+        private async void AllCoursesView_Loaded(object sender, RoutedEventArgs e)
+        {
+            Loaded -= AllCoursesView_Loaded;
+            await LoadCoursesAsync();
+            await LoadSavedCoursesFromApiAsync();
         }
 
         private async Task LoadCoursesAsync()
@@ -93,6 +101,70 @@ namespace FLS
             }
         }
 
+        private async Task LoadSavedCoursesFromApiAsync()
+        {
+            _savedCourses.Clear();
+
+            string userId;
+            try
+            {
+                userId = FLS.Services.SessionManager.Instance.GetCurrentUserId();
+            }
+            catch (InvalidOperationException)
+            {
+                // Not logged in; nothing to load
+                return;
+            }
+
+            try
+            {
+                var response = await _apiClient.GetMyCoursesAsync(userId);
+                if (!response.Success || response.Data == null)
+                {
+                    return;
+                }
+
+                foreach (var dto in response.Data)
+                {
+                    // Try to find the course in the already loaded list
+                    var course = _courses.FirstOrDefault(c => c.Id == dto.CourseId);
+                    if (course == null)
+                    {
+                        // Fallback: create a lightweight course entry
+                        course = new Course
+                        {
+                            Id = dto.CourseId,
+                            Code = dto.CourseCode,
+                            Name = dto.CourseName,
+                            Description = dto.Description ?? string.Empty,
+                            Credits = 0,
+                            CreatedDate = DateTime.Now
+                        };
+                        _courses.Add(course);
+                    }
+
+                    var userCourse = new UserCourse
+                    {
+                        Id = _nextUserCourseId++,
+                        Course = course,
+                        Section = dto.SectionName ?? string.Empty,
+                        EnrolledDate = DateTime.Now
+                    };
+
+                    _savedCourses.Add(userCourse);
+                }
+
+                if (_savedCourses.Any())
+                {
+                    SavedCoursesChanged?.Invoke(_savedCourses);
+                }
+            }
+            catch
+            {
+                // If loading saved courses fails, we simply start with an empty list for this session.
+            }
+        }
+
 
         private void CancelButton_Click(object sender, RoutedEventArgs e)
         {
@@ -140,7 +212,7 @@ namespace FLS
             }
         }
 
-        private void SaveCourseButton_Click(object sender, RoutedEventArgs e)
+        private async void SaveCourseButton_Click(object sender, RoutedEventArgs e)
         {
             if (sender is Button button && button.Tag is Course course)
             {
@@ -152,13 +224,88 @@ namespace FLS
                     return;
                 }
 
-                var sectionDialog = new SectionInputDialog(course.Name)
+                // Try to fetch all sections for this course from the timetable
+                List<string> sectionsForCourse = new List<string>();
+                try
+                {
+                    var timetableData = await _apiClient.GetTimetableAsync();
+                    if (timetableData != null && timetableData.Any())
+                    {
+                        // First, try strict match on CourseId
+                        var matchingEntries = timetableData
+                            .Where(t => t.CourseId == course.Id)
+                            .ToList();
+
+                        // If nothing found (e.g. IDs don't line up for some reason),
+                        // fall back to matching on subject text using course code/name.
+                        if (!matchingEntries.Any())
+                        {
+                            var code = course.Code?.Trim();
+                            var name = course.Name?.Trim();
+
+                            matchingEntries = timetableData
+                                .Where(t =>
+                                    (!string.IsNullOrWhiteSpace(code) &&
+                                     !string.IsNullOrWhiteSpace(t.Subject) &&
+                                     t.Subject.IndexOf(code, StringComparison.OrdinalIgnoreCase) >= 0) ||
+                                    (!string.IsNullOrWhiteSpace(name) &&
+                                     !string.IsNullOrWhiteSpace(t.Subject) &&
+                                     t.Subject.IndexOf(name, StringComparison.OrdinalIgnoreCase) >= 0))
+                                .ToList();
+                        }
+
+                        sectionsForCourse = matchingEntries
+                            .Select(t => t.SectionName ?? string.Empty)
+                            .Where(s => !string.IsNullOrWhiteSpace(s))
+                            .Distinct(StringComparer.OrdinalIgnoreCase)
+                            .OrderBy(s => s)
+                            .ToList();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(
+                        $"Unable to load sections from timetable for this course. You can still type the section manually.\n\nDetails: {ex.Message}",
+                        "Warning",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Warning);
+                }
+
+                var sectionDialog = new SectionInputDialog(course.Name, sectionsForCourse)
                 {
                     Owner = Window.GetWindow(this)
                 };
 
                 if (sectionDialog.ShowDialog() == true && sectionDialog.IsSaved)
                 {
+                    // Ensure we have a logged-in user before saving
+                    string userId;
+                    try
+                    {
+                        userId = SessionManager.Instance.GetCurrentUserId();
+                    }
+                    catch (InvalidOperationException)
+                    {
+                        MessageBox.Show(
+                            "You must be logged in to save courses.",
+                            "Not Logged In",
+                            MessageBoxButton.OK,
+                            MessageBoxImage.Warning);
+                        return;
+                    }
+
+                    // Persist the saved course to the backend (usercourses table)
+                    var apiResult = await _apiClient.AddUserCourseAsync(userId, course.Id, sectionDialog.Section);
+                    if (!apiResult.Success)
+                    {
+                        MessageBox.Show(
+                            apiResult.Message ?? "Failed to save course to your account.",
+                            "Error",
+                            MessageBoxButton.OK,
+                            MessageBoxImage.Error);
+                        return;
+                    }
+
                     var userCourse = new UserCourse
                     {
                         Id = _nextUserCourseId++,

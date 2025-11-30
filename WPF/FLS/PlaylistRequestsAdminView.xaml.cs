@@ -17,7 +17,7 @@ namespace FLS
     public partial class PlaylistRequestsAdminView : UserControl
     {
         private readonly HttpClient _httpClient;
-        private readonly string _apiBaseUrl = "http://localhost:5000/api";
+        private readonly string _apiBaseUrl = "http://localhost:5232/api";
 
         private ObservableCollection<PlaylistRequest> _requests;
 

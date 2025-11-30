@@ -80,6 +80,119 @@ namespace FLS.DL
             return timetable ?? new List<TimetableDTO>();
         }
 
+        public async Task<List<CommunityPlaylist>> GetCommunityPlaylistsAsync(string userId)
+        {
+            var response = await _httpClient.GetAsync($"{API_BASE_URL}/api/Playlist/community?userId={Uri.EscapeDataString(userId)}");
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorContent = await response.Content.ReadAsStringAsync();
+                throw new HttpRequestException($"API returned {response.StatusCode}: {errorContent}");
+            }
+
+            var responseJson = await response.Content.ReadAsStringAsync();
+            var options = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            };
+
+            var playlists = JsonSerializer.Deserialize<List<CommunityPlaylist>>(responseJson, options);
+            return playlists ?? new List<CommunityPlaylist>();
+        }
+
+        public async Task<List<TimetableDTO>> GetMyTimetableAsync(string userId)
+        {
+            var response = await _httpClient.GetAsync($"{API_BASE_URL}/api/Timetable/my?userId={Uri.EscapeDataString(userId)}");
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorContent = await response.Content.ReadAsStringAsync();
+                throw new HttpRequestException($"API returned {response.StatusCode}: {errorContent}");
+            }
+
+            var responseJson = await response.Content.ReadAsStringAsync();
+            var options = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            };
+
+            var timetable = JsonSerializer.Deserialize<List<TimetableDTO>>(responseJson, options);
+            return timetable ?? new List<TimetableDTO>();
+        }
+
+        public async Task<ApiResponse<object>> AddUserCourseAsync(string userId, string courseId, string? sectionName)
+        {
+            var request = new AddUserCourseRequest
+            {
+                UserId = userId,
+                CourseId = courseId,
+                SectionName = sectionName
+            };
+
+            var json = JsonSerializer.Serialize(request);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+            var response = await _httpClient.PostAsync($"{API_BASE_URL}/api/UserCourses", content);
+            var responseJson = await response.Content.ReadAsStringAsync();
+
+            var options = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            };
+
+            try
+            {
+                var apiResponse = JsonSerializer.Deserialize<ApiResponse<object>>(responseJson, options);
+                if (apiResponse != null)
+                {
+                    return apiResponse;
+                }
+            }
+            catch
+            {
+            }
+
+            return new ApiResponse<object>
+            {
+                Success = response.IsSuccessStatusCode,
+                Message = response.IsSuccessStatusCode
+                    ? "User course saved successfully."
+                    : $"API returned {response.StatusCode}: {responseJson}"
+            };
+        }
+
+        public async Task<ApiResponse<object>> RemoveUserCourseAsync(string userId, string courseId)
+        {
+            var url = $"{API_BASE_URL}/api/UserCourses?userId={Uri.EscapeDataString(userId)}&courseId={Uri.EscapeDataString(courseId)}";
+            var response = await _httpClient.DeleteAsync(url);
+            var responseJson = await response.Content.ReadAsStringAsync();
+
+            var options = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            };
+
+            try
+            {
+                var apiResponse = JsonSerializer.Deserialize<ApiResponse<object>>(responseJson, options);
+                if (apiResponse != null)
+                {
+                    return apiResponse;
+                }
+            }
+            catch
+            {
+            }
+
+            return new ApiResponse<object>
+            {
+                Success = response.IsSuccessStatusCode,
+                Message = response.IsSuccessStatusCode
+                    ? "User course removed successfully."
+                    : $"API returned {response.StatusCode}: {responseJson}"
+            };
+        }
+
         public async Task<ApiResponse<UserResponse>> SignInAsync(SignInRequest request)
         {
             var json = JsonSerializer.Serialize(request);

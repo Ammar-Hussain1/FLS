@@ -24,7 +24,7 @@ namespace FLS.BL
             _apiKey = apiKey;
         }
 
-        public async Task<string> SendMessageAsync(string userId, string message)
+        public async Task<string> SendMessageAsync(string userId, string message, List<ChatTurnDTO> history)
         {
             if (string.IsNullOrWhiteSpace(message))
             {
@@ -40,7 +40,8 @@ namespace FLS.BL
             {
                 UserId = userId,
                 Message = message,
-                ApiKey = _apiKey
+                ApiKey = _apiKey,
+                History = history
             };
 
             var response = await _apiClient.SendChatMessageAsync(request);
@@ -56,10 +57,17 @@ namespace FLS.BL
         public string UserId { get; set; } = string.Empty;
         public string Message { get; set; } = string.Empty;
         public string ApiKey { get; set; } = string.Empty;
+        public List<ChatTurnDTO>? History { get; set; }
     }
 
     public class ChatResponse
     {
         public string Response { get; set; } = string.Empty;
+    }
+
+    public class ChatTurnDTO
+    {
+        public string Role { get; set; } = string.Empty; // "user" or "assistant"
+        public string Message { get; set; } = string.Empty;
     }
 }

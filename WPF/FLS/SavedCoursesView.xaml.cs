@@ -3,7 +3,9 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using FLS.DL;
 using FLS.Models;
+using FLS.Services;
 
 namespace FLS
 {
@@ -11,6 +13,7 @@ namespace FLS
     {
         private ObservableCollection<UserCourse> _savedCourses;
         private Dashboard _parentDashboard;
+        private readonly ApiClient _apiClient;
         
         private int _currentPage = 1;
         private int _pageSize = 10;
@@ -22,6 +25,7 @@ namespace FLS
         {
             InitializeComponent();
             _savedCourses = new ObservableCollection<UserCourse>();
+            _apiClient = new ApiClient();
             LoadSavedCourses();
         }
 
@@ -70,21 +74,55 @@ namespace FLS
 
                 if (result == MessageBoxResult.Yes)
                 {
-                    var userCourseToRemove = _savedCourses.FirstOrDefault(uc => uc.Course.Id == courseId);
-                    if (userCourseToRemove != null)
-                    {
-                        _savedCourses.Remove(userCourseToRemove);
-                        
-                        // Notify AllCoursesView to update
-                        if (_parentDashboard != null)
-                        {
-                            _parentDashboard.RemoveFromSavedCourses(courseId);
-                        }
-                        
-                        MessageBox.Show("Course removed from saved courses!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
-                        UpdatePagination();
-                    }
+                    _ = RemoveCourseAsync(courseId);
                 }
+            }
+        }
+
+        private async Task RemoveCourseAsync(string courseId)
+        {
+            string userId;
+            try
+            {
+                userId = SessionManager.Instance.GetCurrentUserId();
+            }
+            catch (InvalidOperationException)
+            {
+                MessageBox.Show("You must be logged in to modify saved courses.", "Not Logged In",
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            try
+            {
+                var apiResult = await _apiClient.RemoveUserCourseAsync(userId, courseId);
+                if (!apiResult.Success)
+                {
+                    MessageBox.Show(apiResult.Message ?? "Failed to remove course from your account.",
+                        "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+
+                var userCourseToRemove = _savedCourses.FirstOrDefault(uc => uc.Course.Id == courseId);
+                if (userCourseToRemove != null)
+                {
+                    _savedCourses.Remove(userCourseToRemove);
+
+                    // Notify AllCoursesView to update its local state
+                    if (_parentDashboard != null)
+                    {
+                        _parentDashboard.RemoveFromSavedCourses(courseId);
+                    }
+
+                    MessageBox.Show("Course removed from saved courses!", "Success",
+                        MessageBoxButton.OK, MessageBoxImage.Information);
+                    UpdatePagination();
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error removing course: {ex.Message}", "Error",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
