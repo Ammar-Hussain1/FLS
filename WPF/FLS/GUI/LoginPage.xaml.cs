@@ -11,7 +11,7 @@ using FLS.Models;
 using FLS.Services;
 using FLS.Helpers;
 
-namespace WpfLoginApp
+namespace FLS
 {
   
     public partial class LoginPage : Window
