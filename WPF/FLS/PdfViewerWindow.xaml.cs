@@ -11,6 +11,9 @@ namespace FLS
         public PdfViewerWindow(string url, string title)
         {
             InitializeComponent();
+            this.WindowState = WindowState.Maximized;
+            this.ResizeMode = ResizeMode.CanResize;
+            this.WindowStyle = WindowStyle.SingleBorderWindow;
             _pdfUrl = url;
             TitleText.Text = title;
             Title = title;

@@ -7,7 +7,6 @@ namespace FLS
 {
     public partial class AdminDashboard : Window
     {
-        private CourseManagementView _courseManagementView;
         private MaterialRequestsView _materialRequestsView;
         private PlaylistRequestsAdminView _playlistRequestsAdminView;
         private TimetableUploadView _timetableUploadView;
@@ -16,23 +15,10 @@ namespace FLS
         public AdminDashboard()
         {
             InitializeComponent();
-            LoadCourseManagementView();
-        }
-
-        private void CourseManagementTab_Click(object sender, RoutedEventArgs e)
-        {
-            LoadCourseManagementView();
-        }
-
-        private void LoadCourseManagementView()
-        {
-            if (_courseManagementView == null)
-            {
-                _courseManagementView = new CourseManagementView();
-            }
-            ContentArea.Content = _courseManagementView;
-            _currentView = _courseManagementView;
-            UpdateTabSelection(CourseManagementTab);
+            this.WindowState = WindowState.Maximized;
+            this.ResizeMode = ResizeMode.CanResize;
+            this.WindowStyle = WindowStyle.SingleBorderWindow;
+            LoadMaterialRequestsView();
         }
 
         private void MaterialRequestsTab_Click(object sender, RoutedEventArgs e)
@@ -101,7 +87,6 @@ namespace FLS
 
         private void UpdateTabSelection(Button selectedButton)
         {
-            CourseManagementTab.Background = new SolidColorBrush(Color.FromRgb(43, 45, 66));
             MaterialRequestsTab.Background = new SolidColorBrush(Color.FromRgb(43, 45, 66));
             PlaylistRequestsTab.Background = new SolidColorBrush(Color.FromRgb(43, 45, 66));
             TimetableUploadTab.Background = new SolidColorBrush(Color.FromRgb(43, 45, 66));
