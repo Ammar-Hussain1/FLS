@@ -1,4 +1,4 @@
-<Window x:Class="WpfLoginApp.LoginPage"
+<Window x:Class="FLS.LoginPage"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="FAST Learning System"

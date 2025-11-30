@@ -15,7 +15,7 @@ using System.Windows.Shapes;
 using FLS.BL;
 using FLS.DL;
 using FLS.Models;
-using WpfLoginApp;
+using FLS;
 
 namespace FLS
 {
