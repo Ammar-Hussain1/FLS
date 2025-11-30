@@ -77,7 +77,7 @@ namespace FLS
             }
         }
 
-        private Border CreateSlotCard(TimetableSlot slot)
+        private Border CreateSlotCard(TimetableSlot? slot)
         {
             var border = new Border
             {
@@ -151,11 +151,11 @@ namespace FLS
 
     public class TimetableRow
     {
-        public string TimeSlot { get; set; }
-        public Border Monday { get; set; }
-        public Border Tuesday { get; set; }
-        public Border Wednesday { get; set; }
-        public Border Thursday { get; set; }
-        public Border Friday { get; set; }
+        public string TimeSlot { get; set; } = string.Empty;
+        public Border? Monday { get; set; }
+        public Border? Tuesday { get; set; }
+        public Border? Wednesday { get; set; }
+        public Border? Thursday { get; set; }
+        public Border? Friday { get; set; }
     }
 }

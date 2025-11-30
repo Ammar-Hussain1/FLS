@@ -24,7 +24,7 @@ namespace FLS.BL
             _apiKey = apiKey;
         }
 
-        public async Task<string> SendMessageAsync(int userId, string message)
+        public async Task<string> SendMessageAsync(Guid userId, string message)
         {
             if (string.IsNullOrWhiteSpace(message))
             {

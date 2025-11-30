@@ -18,7 +18,7 @@ namespace FLS_API.BL
 
         public async Task<string> ProcessMessageAsync(string userIdStr, string message, string apiKey)
         {
-            if (!int.TryParse(userIdStr, out var userId))
+            if (!Guid.TryParse(userIdStr, out var userId))
             {
                 return "Invalid user ID";
             }
@@ -52,7 +52,7 @@ namespace FLS_API.BL
             }
         }
 
-        private async Task<List<UserMemory>> GetTopMemoriesAsync(int userId, int limit)
+        private async Task<List<UserMemory>> GetTopMemoriesAsync(Guid userId, int limit)
         {
             var response = await _supabase.Client.From<UserMemory>()
                 .Where(m => m.UserId == userId)
@@ -69,7 +69,7 @@ namespace FLS_API.BL
             return memories;
         }
 
-        private async Task<string> GetRelevantCourseMaterialsAsync(string query, int userId)
+        private async Task<string> GetRelevantCourseMaterialsAsync(string query, Guid userId)
         {
             // TODO: Implement RAG when course materials are available
             // For now, return empty string
@@ -114,11 +114,10 @@ namespace FLS_API.BL
             sb.AppendLine($"User: {userMessage}");
             sb.AppendLine();
             sb.AppendLine("AI:");
-            
             return sb.ToString();
         }
 
-        private async Task ProcessMemoryUpdatesAsync(int userId, OpenRouterResponse response)
+        private async Task ProcessMemoryUpdatesAsync(Guid userId, OpenRouterResponse response)
         {
             // Add new memories
             foreach (var update in response.MemoryUpdates)
