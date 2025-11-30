@@ -379,7 +379,9 @@ namespace FLS.DL
                     FilePath = dto.FilePath,
                     Year = dto.Year,
                     Status = dto.Status,
-                    UploadedAt = dto.UploadedAt
+                    UploadedAt = dto.UploadedAt,
+                    UploadedBy = dto.UploadedBy,
+                    UploadedByName = dto.UploadedByName
                 }).ToList();
 
                 return new ApiResponse<List<MaterialRequest>>
@@ -445,7 +447,9 @@ namespace FLS.DL
                     FilePath = dto.FilePath,
                     Year = dto.Year,
                     Status = dto.Status,
-                    UploadedAt = dto.UploadedAt
+                    UploadedAt = dto.UploadedAt,
+                    UploadedBy = dto.UploadedBy,
+                    UploadedByName = dto.UploadedByName
                 }).ToList();
 
                 return new ApiResponse<List<MaterialRequest>>

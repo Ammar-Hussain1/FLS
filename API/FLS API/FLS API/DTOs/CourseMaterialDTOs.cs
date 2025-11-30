@@ -27,6 +27,8 @@ namespace FLS_API.DTOs
         public int? Year { get; set; }
         public string Status { get; set; } = string.Empty;
         public DateTime UploadedAt { get; set; }
+        public string? UploadedBy { get; set; }
+        public string? UploadedByName { get; set; }
     }
 
     public class CourseWithMaterialsDTO
