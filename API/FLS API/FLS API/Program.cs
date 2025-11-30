@@ -23,11 +23,8 @@ builder.Services.AddScoped<SupabaseService>();
 
 // Using real ChatbotService
 builder.Services.AddScoped<IChatbotService, ChatbotService>();
-<<<<<<< HEAD
 builder.Services.AddScoped<IPlaylistService, PlaylistService>();
 builder.Services.AddScoped<ITimetableService, TimetableService>();
-=======
->>>>>>> 7de9a22b8b04ecf3b9c589f93a5d0147d2b2bb40
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
