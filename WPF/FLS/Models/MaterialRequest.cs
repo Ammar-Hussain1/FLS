@@ -41,7 +41,6 @@ namespace FLS.Models
         [JsonPropertyName("uploadedByName")]
         public string? UploadedByName { get; set; }
 
-        public string CourseCode => CourseName;
         public string MaterialType => Category;
         public DateTime SubmissionDate => UploadedAt;
         public string SubmittedBy => UploadedByName ?? UploadedBy ?? "Unknown";
