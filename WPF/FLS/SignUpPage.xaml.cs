@@ -27,6 +27,8 @@ namespace FLS
         public SignUpPage()
         {
             InitializeComponent();
+            this.WindowState = WindowState.Maximized;
+            this.ResizeMode = ResizeMode.NoResize;
             _apiClient = new ApiClient();
         }
 

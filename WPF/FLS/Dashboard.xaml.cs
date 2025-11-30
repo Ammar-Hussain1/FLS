@@ -22,6 +22,8 @@ namespace FLS
         public Dashboard()
         {
             InitializeComponent();
+            this.WindowState = WindowState.Maximized;
+            this.ResizeMode = ResizeMode.NoResize;
             LoadAllCoursesView();
         }
 

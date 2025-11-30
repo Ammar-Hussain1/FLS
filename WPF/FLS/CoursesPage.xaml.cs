@@ -16,7 +16,9 @@ namespace FLS
         public CoursesPage()
         {
             InitializeComponent();
-            
+            this.WindowState = WindowState.Maximized;
+            this.ResizeMode = ResizeMode.NoResize;
+
             _courses = new ObservableCollection<Course>();
             CoursesItemsControl.ItemsSource = _courses;
             LoadCourses();

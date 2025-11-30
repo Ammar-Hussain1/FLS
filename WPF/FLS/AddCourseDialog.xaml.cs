@@ -12,6 +12,7 @@ namespace FLS
         public AddCourseDialog()
         {
             InitializeComponent();
+
         }
 
         private void AddButton_Click(object sender, RoutedEventArgs e)

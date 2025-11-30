@@ -16,6 +16,8 @@ namespace FLS
         public AdminDashboard()
         {
             InitializeComponent();
+            this.WindowState = WindowState.Maximized;
+            this.ResizeMode = ResizeMode.NoResize;
             LoadCourseManagementView();
         }
 
