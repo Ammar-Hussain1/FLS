@@ -121,25 +121,19 @@
 
                 <Button Content="Create Account"
                         Name="CreateAccountButton"
+                        Style="{StaticResource PrimaryButtonStyle}"
                         FontSize="20"
                         FontWeight="SemiBold"
-                        Background="{StaticResource Accent}"
-                        Foreground="{StaticResource Surface}"
                         Padding="10"
                         Height="55"
-                        BorderBrush="{StaticResource Accent}"
-                        BorderThickness="2"
                         HorizontalAlignment="Stretch"
                         Margin="0,0,0,18" Click="CreateAccountButton_Click"/>
 
                 <Button Content="Already have an account? Sign in"
                         Name="AlreadyAccountButton"
+                        Style="{StaticResource SecondaryButtonStyle}"
                         FontSize="20"
                         FontWeight="SemiBold"
-                        Background="Transparent"
-                        Foreground="{StaticResource Primary}"
-                        BorderBrush="{StaticResource Accent}"
-                        BorderThickness="2"
                         Padding="10"
                         Height="55"
                         HorizontalAlignment="Stretch" Click="AlreadyAccountButton_Click"/>
