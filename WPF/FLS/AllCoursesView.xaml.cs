@@ -326,6 +326,8 @@ namespace FLS
                     _savedCourses.Add(userCourse);
                     SavedCoursesChanged?.Invoke(_savedCourses);
                     
+                    await LoadSavedCoursesFromApiAsync();
+                    
                     MessageBox.Show(
                         $"Course '{course.Name}' (Section {userCourse.Section}) has been saved!\n\n" +
                         "This information will be used to generate your timetable later.",

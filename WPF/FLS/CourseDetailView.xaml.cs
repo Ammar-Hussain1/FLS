@@ -138,6 +138,7 @@ namespace FLS
 
             if (string.IsNullOrWhiteSpace(_courseId))
             {
+                UpdatePlaylistsDisplay();
                 return;
             }
 
@@ -147,7 +148,8 @@ namespace FLS
                 var communityPlaylists = await _playlistService.GetCommunityPlaylistsAsync(userId);
 
                 var matching = communityPlaylists
-                    .Where(p => p.CourseId == _courseId)
+                    .Where(p => !string.IsNullOrWhiteSpace(p.CourseId) && 
+                                p.CourseId.Trim().Equals(_courseId.Trim(), StringComparison.OrdinalIgnoreCase))
                     .ToList();
 
                 _playlists = matching
@@ -160,10 +162,23 @@ namespace FLS
                         ThumbnailUrl = string.Empty
                     })
                     .ToList();
+                
+                UpdatePlaylistsDisplay();
             }
-            catch
+            catch (Exception ex)
             {
                 _playlists = new List<Playlist>();
+                UpdatePlaylistsDisplay();
+                System.Diagnostics.Debug.WriteLine($"Error loading playlists: {ex.Message}");
+            }
+        }
+
+        private void UpdatePlaylistsDisplay()
+        {
+            if (CategoryItemsControl != null)
+            {
+                CategoryItemsControl.ItemsSource = null;
+                CategoryItemsControl.ItemsSource = _playlists ?? new List<Playlist>();
             }
         }
 
