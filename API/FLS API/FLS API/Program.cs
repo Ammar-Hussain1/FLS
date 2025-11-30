@@ -27,7 +27,24 @@ builder.Services.AddScoped<IPlaylistService, PlaylistService>();
 builder.Services.AddScoped<ITimetableService, TimetableService>();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+    {
+        Title = "FLS API",
+        Version = "v1"
+    });
+    
+    // Add support for file uploads (multipart/form-data)
+    c.OperationFilter<FLS_API.Utilities.FileUploadOperationFilter>();
+    
+    // Map IFormFile to binary schema
+    c.MapType<Microsoft.AspNetCore.Http.IFormFile>(() => new Microsoft.OpenApi.Models.OpenApiSchema
+    {
+        Type = "string",
+        Format = "binary"
+    });
+});
 
 // Add CORS
 builder.Services.AddCors(options =>

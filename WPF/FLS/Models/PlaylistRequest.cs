@@ -15,7 +15,7 @@ namespace FLS.Models
         public string Name { get; set; } = string.Empty;
         public string PlaylistName { get; set; } = string.Empty;
         public string Url { get; set; } = string.Empty;
-        public int CourseId { get; set; }
+        public Guid CourseId { get; set; }
         public Guid UserId { get; set; }
         public string CourseName { get; set; } = string.Empty;
         public string CourseCode { get; set; } = string.Empty;
