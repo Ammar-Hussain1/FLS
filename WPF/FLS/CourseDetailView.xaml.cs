@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using FLS.BL;
 using FLS.DL;
 using FLS.Models;
 using FLS.Services;
@@ -16,7 +18,10 @@ namespace FLS
     {
         private Course _course;
         private string _courseId = string.Empty;
-        private readonly ApiClient _apiClient;
+        private readonly CourseMaterialService _courseMaterialService;
+        private readonly PlaylistService _playlistService;
+        private readonly UserCourseService _userCourseService;
+        private readonly HttpClient _httpClient;
 
         // Data Collections
         private List<CourseMaterial> _quizzes;
@@ -29,7 +34,15 @@ namespace FLS
         public CourseDetailView()
         {
             InitializeComponent();
-            _apiClient = new ApiClient();
+            
+            _httpClient = new HttpClient();
+            var courseMaterialApiClient = new CourseMaterialApiClient(_httpClient);
+            var playlistApiClient = new PlaylistApiClient(_httpClient);
+            var userCourseApiClient = new UserCourseApiClient(_httpClient);
+            
+            _courseMaterialService = new CourseMaterialService(courseMaterialApiClient);
+            _playlistService = new PlaylistService(playlistApiClient);
+            _userCourseService = new UserCourseService(userCourseApiClient);
         }
 
         public void SetCourse(Course course)
@@ -55,7 +68,7 @@ namespace FLS
 
             try
             {
-                var response = await _apiClient.GetCourseMaterialsAsync(_courseId);
+                var response = await _courseMaterialService.GetCourseMaterialsAsync(_courseId);
                 if (response.Success && response.Data != null)
                 {
                     if (response.Data.MaterialsByCategory != null && response.Data.MaterialsByCategory.Count > 0)
@@ -98,7 +111,7 @@ namespace FLS
                 var userId = Helpers.AppSettings.GetCurrentUserId();
                 if (!string.IsNullOrWhiteSpace(userId))
                 {
-                    var coursesResponse = await _apiClient.GetMyCoursesAsync(userId);
+                    var coursesResponse = await _userCourseService.GetMyCoursesAsync(userId);
                     if (coursesResponse.Success && coursesResponse.Data != null)
                     {
                         var course = coursesResponse.Data.FirstOrDefault(c => 
@@ -131,7 +144,7 @@ namespace FLS
             try
             {
                 var userId = SessionManager.Instance.GetCurrentUserId();
-                var communityPlaylists = await _apiClient.GetCommunityPlaylistsAsync(userId);
+                var communityPlaylists = await _playlistService.GetCommunityPlaylistsAsync(userId);
 
                 var matching = communityPlaylists
                     .Where(p => p.CourseId == _courseId)

@@ -1,9 +1,11 @@
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using FLS.BL;
 using FLS.DL;
 using FLS.Helpers;
 using FLS.Models;
@@ -13,14 +15,19 @@ namespace FLS
     public partial class MaterialRequestsView : UserControl
     {
         private ObservableCollection<MaterialRequest> _requests;
-        private readonly ApiClient _apiClient;
+        private readonly CourseMaterialService _courseMaterialService;
+        private readonly HttpClient _httpClient;
         private bool _isAdminView;
 
         public MaterialRequestsView(bool isAdminView = false)
         {
             InitializeComponent();
             _requests = new ObservableCollection<MaterialRequest>();
-            _apiClient = new ApiClient();
+            
+            _httpClient = new HttpClient();
+            var courseMaterialApiClient = new CourseMaterialApiClient(_httpClient);
+            _courseMaterialService = new CourseMaterialService(courseMaterialApiClient);
+            
             _isAdminView = isAdminView;
             RequestsListView.ItemsSource = _requests;
             Loaded += MaterialRequestsView_Loaded;
@@ -61,7 +68,7 @@ namespace FLS
                 return;
             }
 
-            var response = await _apiClient.GetMyRequestsAsync(userId);
+            var response = await _courseMaterialService.GetMyRequestsAsync(userId);
             if (response.Success && response.Data != null)
             {
                 _requests.Clear();
@@ -79,7 +86,7 @@ namespace FLS
 
         private async Task LoadPendingRequests()
         {
-            var response = await _apiClient.GetPendingRequestsAsync();
+            var response = await _courseMaterialService.GetPendingRequestsAsync();
             if (response.Success && response.Data != null)
             {
                 _requests.Clear();
@@ -108,7 +115,7 @@ namespace FLS
 
                     try
                     {
-                        var response = await _apiClient.ApproveRequestAsync(requestId);
+                        var response = await _courseMaterialService.ApproveRequestAsync(requestId);
                         if (response.Success)
                         {
                             request.Status = "Approved";
@@ -158,7 +165,7 @@ namespace FLS
 
                         try
                         {
-                            var response = await _apiClient.RejectRequestAsync(requestId);
+                            var response = await _courseMaterialService.RejectRequestAsync(requestId);
                             if (response.Success)
                             {
                                 request.Status = "Rejected";

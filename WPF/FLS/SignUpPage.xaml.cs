@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -11,18 +12,17 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+using FLS.BL;
 using FLS.DL;
 using FLS.Models;
 using WpfLoginApp;
 
 namespace FLS
 {
-    /// <summary>
-    /// Interaction logic for SignUpPage.xaml
-    /// </summary>
     public partial class SignUpPage : Window
     {
-        private readonly ApiClient _apiClient;
+        private readonly UserService _userService;
+        private readonly HttpClient _httpClient;
 
         public SignUpPage()
         {
@@ -30,7 +30,10 @@ namespace FLS
             this.WindowState = WindowState.Maximized;
             this.ResizeMode = ResizeMode.CanResize;
             this.WindowStyle = WindowStyle.SingleBorderWindow;
-            _apiClient = new ApiClient();
+            
+            _httpClient = new HttpClient();
+            var userApiClient = new UserApiClient(_httpClient);
+            _userService = new UserService(userApiClient);
         }
 
         private async void CreateAccountButton_Click(object sender, RoutedEventArgs e)
@@ -84,14 +87,7 @@ namespace FLS
 
             try
             {
-                var request = new SignUpRequest
-                {
-                    FullName = fullName,
-                    Email = email,
-                    Password = password
-                };
-
-                var response = await _apiClient.SignUpAsync(request);
+                var response = await _userService.SignUpAsync(fullName, email, password);
 
                 if (response.Success && response.Data != null)
                 {

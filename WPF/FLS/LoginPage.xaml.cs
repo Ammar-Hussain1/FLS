@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Globalization;
+using System.Net.Http;
 using System.Windows;
 using System.Windows.Data;
 using System.Threading.Tasks;
 using FLS;
+using FLS.BL;
 using FLS.DL;
 using FLS.Models;
 using FLS.Services;
@@ -14,7 +16,8 @@ namespace WpfLoginApp
   
     public partial class LoginPage : Window
     {
-        private readonly ApiClient _apiClient;
+        private readonly UserService _userService;
+        private readonly HttpClient _httpClient;
 
         public LoginPage()
         {
@@ -25,8 +28,9 @@ namespace WpfLoginApp
 
             Loaded += (s, e) => UsernameTextBox.Focus();
 
-
-            _apiClient = new ApiClient();
+            _httpClient = new HttpClient();
+            var userApiClient = new UserApiClient(_httpClient);
+            _userService = new UserService(userApiClient);
         }
 
         private void SignUpButton_Click(object sender, RoutedEventArgs e) {
@@ -58,13 +62,7 @@ namespace WpfLoginApp
 
             try
             {
-                var request = new SignInRequest
-                {
-                    Email = email,
-                    Password = password
-                };
-
-                var response = await _apiClient.SignInAsync(request);
+                var response = await _userService.SignInAsync(email, password);
 
                 if (response.Success && response.Data != null)
                 {

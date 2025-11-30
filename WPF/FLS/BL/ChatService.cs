@@ -1,27 +1,19 @@
 using System;
-using System.Net.Http;
-using System.Text;
-using System.Text.Json;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using FLS.DL;
 
 namespace FLS.BL
 {
-    /// <summary>
-    /// Business logic for chatbot interactions
-    /// Handles API communication and response processing
-    /// </summary>
     public class ChatService
     {
-        private readonly HttpClient _httpClient;
-        private readonly ApiClient _apiClient;
+        private readonly ChatApiClient _chatApiClient;
         private readonly string _apiKey;
 
-        public ChatService(string apiKey)
+        public ChatService(ChatApiClient chatApiClient, string apiKey)
         {
-            _httpClient = new HttpClient();
-            _apiClient = new ApiClient();
-            _apiKey = apiKey;
+            _chatApiClient = chatApiClient ?? throw new ArgumentNullException(nameof(chatApiClient));
+            _apiKey = apiKey ?? throw new ArgumentNullException(nameof(apiKey));
         }
 
         public async Task<string> SendMessageAsync(string userId, string message, List<ChatTurnDTO> history)
@@ -44,11 +36,9 @@ namespace FLS.BL
                 History = history
             };
 
-            var response = await _apiClient.SendChatMessageAsync(request);
+            var response = await _chatApiClient.SendChatMessageAsync(request);
             return response.Response;
         }
-
-
     }
 
     // DTOs for API communication

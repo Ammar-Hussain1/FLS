@@ -1,5 +1,6 @@
 using System;
 using System.Collections.ObjectModel;
+using System.Net.Http;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -13,15 +14,12 @@ using FLS.Services;
 
 namespace FLS
 {
-    /// <summary>
-    /// GUI layer for chat interface
-    /// Handles UI interactions and delegates business logic to BL layer
-    /// </summary>
     public partial class ChatView : UserControl
     {
         private ObservableCollection<ChatMessage> _messages;
         private ChatService _chatService;
         private ChatHistoryRepository _historyRepository;
+        private readonly HttpClient _httpClient;
         private bool _isLoading = false;
         private string _userApiKey = string.Empty;
 
@@ -29,6 +27,7 @@ namespace FLS
         {
             InitializeComponent();
             _messages = new ObservableCollection<ChatMessage>();
+            _httpClient = new HttpClient();
 
             // Use per-user chat history file so different users don't share conversations
             string? initialUserId = null;
@@ -53,7 +52,8 @@ namespace FLS
             // Initialize chat service with API key
             if (!string.IsNullOrWhiteSpace(_userApiKey))
             {
-                _chatService = new ChatService(_userApiKey);
+                var chatApiClient = new ChatApiClient(_httpClient);
+                _chatService = new ChatService(chatApiClient, _userApiKey);
             }
 
             // Load chat history from local storage
@@ -98,7 +98,8 @@ namespace FLS
                 if (result == true)
                 {
                     _userApiKey = AppSettings.GetApiKey();
-                    _chatService = new ChatService(_userApiKey);
+                    var chatApiClient = new ChatApiClient(_httpClient);
+                    _chatService = new ChatService(chatApiClient, _userApiKey);
                 }
                 else
                 {
@@ -219,7 +220,8 @@ namespace FLS
             if (result == true)
             {
                 _userApiKey = AppSettings.GetApiKey();
-                _chatService = new ChatService(_userApiKey);
+                var chatApiClient = new ChatApiClient(_httpClient);
+                _chatService = new ChatService(chatApiClient, _userApiKey);
                 AddAIMessage("✅ API key updated successfully! You can now continue chatting.");
             }
         }

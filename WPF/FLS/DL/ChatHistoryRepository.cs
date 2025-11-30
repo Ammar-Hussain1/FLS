@@ -7,10 +7,6 @@ using FLS.Models;
 
 namespace FLS.DL
 {
-    /// <summary>
-    /// Data access layer for local chat history storage
-    /// Manages reading/writing chat messages to local JSON file
-    /// </summary>
     public class ChatHistoryRepository
     {
         private const int MAX_MESSAGES = 50;
