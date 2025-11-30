@@ -4,6 +4,6 @@ namespace FLS_API.BL
 {
     public interface IChatbotService
     {
-        Task<string> ProcessMessageAsync(string userId, string message, string apiKey);
+        Task<string> ProcessMessageAsync(string userId, string message, string apiKey, List<ChatTurnDTO>? history = null);
     }
 }

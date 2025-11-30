@@ -1,4 +1,4 @@
-﻿using FLS_API.DL.Models;
+using FLS_API.DL.Models;
 using FLS_API.DL.DTOs;
 using FLS_API.DTOs;
 using FLS_API.Models;
@@ -245,24 +245,46 @@ namespace FLS_API.BL
                 }
 
                 var courseIds = userCoursesResponse.Models.Select(uc => uc.CourseId).Distinct().ToHashSet();
+                var sectionIds = userCoursesResponse.Models
+                    .Select(uc => uc.SectionId)
+                    .Where(id => !string.IsNullOrWhiteSpace(id))
+                    .Distinct()
+                    .ToHashSet();
                 
                 var allCoursesResponse = await _client.From<Course>().Get();
                 var courses = allCoursesResponse.Models
                     .Where(c => courseIds.Contains(c.Id))
-                    .ToList();
+                    .ToDictionary(c => c.Id, c => c);
+
+                // Load all sections once and filter in memory
+                var sectionsResponse = await _client.From<Section>().Get();
+                var sectionsDict = sectionsResponse.Models
+                    .Where(s => sectionIds.Contains(s.Id))
+                    .ToDictionary(s => s.Id, s => s);
 
                 var result = userCoursesResponse.Models
-                    .Join(courses,
-                        uc => uc.CourseId,
-                        c => c.Id,
-                        (uc, c) => new UserCourseDTO
+                    .Select(uc =>
+                    {
+                        courses.TryGetValue(uc.CourseId, out var course);
+                        sectionsDict.TryGetValue(uc.SectionId, out var section);
+
+                        if (course == null)
                         {
-                            CourseId = c.Id,
-                            CourseCode = c.Code,
-                            CourseName = c.Name,
-                            Description = c.Description
-                        })
-                    .DistinctBy(c => c.CourseId)
+                            return null;
+                        }
+
+                        return new UserCourseDTO
+                        {
+                            CourseId = course.Id,
+                            CourseCode = course.Code,
+                            CourseName = course.Name,
+                            Description = course.Description,
+                            SectionName = section?.Name
+                        };
+                    })
+                    .Where(dto => dto != null)
+                    .DistinctBy(c => c!.CourseId)
+                    .Select(c => c!)
                     .ToList();
 
                 return ServiceResult<List<UserCourseDTO>>.Success(result);
@@ -270,6 +292,82 @@ namespace FLS_API.BL
             catch (Exception ex)
             {
                 return ServiceResult<List<UserCourseDTO>>.Failure($"Failed to get user courses: {ex.Message}", "GET_COURSES_FAILED");
+            }
+        }
+
+        public async Task<ServiceResult<bool>> AddUserCourseAsync(string userId, string courseId, string? sectionName)
+        {
+            if (string.IsNullOrWhiteSpace(userId))
+                return ServiceResult<bool>.Failure("User ID cannot be null or empty.", "INVALID_USER_ID");
+
+            if (string.IsNullOrWhiteSpace(courseId))
+                return ServiceResult<bool>.Failure("Course ID cannot be null or empty.", "INVALID_COURSE_ID");
+
+            try
+            {
+                // Check if the user already has this course saved (idempotent operation)
+                var existingResponse = await _client.From<UserCourseModel>()
+                    .Where(uc => uc.UserId == userId && uc.CourseId == courseId)
+                    .Get();
+
+                if (existingResponse.Models.Any())
+                {
+                    return ServiceResult<bool>.Success(true);
+                }
+
+                // Try to resolve the section name to a section ID, if provided
+                string sectionId = string.Empty;
+                if (!string.IsNullOrWhiteSpace(sectionName))
+                {
+                    var sectionsResponse = await _client.From<Section>()
+                        .Where(s => s.CourseId == courseId && s.Name == sectionName)
+                        .Get();
+
+                    var section = sectionsResponse.Models.FirstOrDefault();
+                    if (section != null)
+                    {
+                        sectionId = section.Id;
+                    }
+                }
+
+                var newUserCourse = new UserCourseModel
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    UserId = userId,
+                    CourseId = courseId,
+                    SectionId = sectionId,
+                    EnrolledAt = DateTime.UtcNow
+                };
+
+                await _client.From<UserCourseModel>().Insert(newUserCourse);
+
+                return ServiceResult<bool>.Success(true);
+            }
+            catch (Exception ex)
+            {
+                return ServiceResult<bool>.Failure($"Failed to add user course: {ex.Message}", "ADD_USER_COURSE_FAILED");
+            }
+        }
+
+        public async Task<ServiceResult<bool>> RemoveUserCourseAsync(string userId, string courseId)
+        {
+            if (string.IsNullOrWhiteSpace(userId))
+                return ServiceResult<bool>.Failure("User ID cannot be null or empty.", "INVALID_USER_ID");
+
+            if (string.IsNullOrWhiteSpace(courseId))
+                return ServiceResult<bool>.Failure("Course ID cannot be null or empty.", "INVALID_COURSE_ID");
+
+            try
+            {
+                await _client.From<UserCourseModel>()
+                    .Where(uc => uc.UserId == userId && uc.CourseId == courseId)
+                    .Delete();
+
+                return ServiceResult<bool>.Success(true);
+            }
+            catch (Exception ex)
+            {
+                return ServiceResult<bool>.Failure($"Failed to remove user course: {ex.Message}", "REMOVE_USER_COURSE_FAILED");
             }
         }
 

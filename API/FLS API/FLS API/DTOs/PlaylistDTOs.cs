@@ -5,7 +5,7 @@ namespace FLS_API.DL.DTOs
         public string Name { get; set; } = string.Empty;
         public string PlaylistName { get; set; } = string.Empty;
         public string Url { get; set; } = string.Empty;
-        public int CourseId { get; set; }
+        public string CourseId { get; set; } = string.Empty;
         public Guid UserId { get; set; }
     }
 
@@ -25,7 +25,7 @@ namespace FLS_API.DL.DTOs
         public Guid Id { get; set; }
         public string Name { get; set; } = string.Empty;
         public string Url { get; set; } = string.Empty;
-        public int CourseId { get; set; }
+        public string CourseId { get; set; } = string.Empty;
         public string CourseName { get; set; } = string.Empty;
         public string CourseCode { get; set; } = string.Empty;
         public int Likes { get; set; }
@@ -37,7 +37,7 @@ namespace FLS_API.DL.DTOs
         public string Name { get; set; } = string.Empty;
         public string PlaylistName { get; set; } = string.Empty;
         public string Url { get; set; } = string.Empty;
-        public int CourseId { get; set; }
+        public string CourseId { get; set; } = string.Empty;
         public string CourseName { get; set; } = string.Empty;
         public string CourseCode { get; set; } = string.Empty;
         public Guid UserId { get; set; }

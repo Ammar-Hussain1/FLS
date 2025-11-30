@@ -1,4 +1,5 @@
 using FLS_API.DL.Models;
+using FLS_API.DL.DTOs;
 using System.Text;
 
 namespace FLS_API.BL
@@ -16,7 +17,7 @@ namespace FLS_API.BL
             _configuration = configuration;
         }
 
-        public async Task<string> ProcessMessageAsync(string userIdStr, string message, string apiKey)
+        public async Task<string> ProcessMessageAsync(string userIdStr, string message, string apiKey, List<ChatTurnDTO>? history = null)
         {
             if (!Guid.TryParse(userIdStr, out var userId))
             {
@@ -34,8 +35,8 @@ namespace FLS_API.BL
                 // 2. RAG: Get relevant course materials (if applicable)
                 var courseMaterials = await GetRelevantCourseMaterialsAsync(message, userId);
                 
-                // 3. Build context-aware prompt (no chat history - it's local now)
-                var prompt = BuildPrompt(message, memories, courseMaterials);
+                // 3. Build context-aware prompt using recent chat history
+                var prompt = BuildPrompt(message, memories, courseMaterials, history);
                 
                 // 4. Call OpenRouter API
                 var aiResponse = await openRouterClient.GenerateContentAsync(prompt);
@@ -76,20 +77,24 @@ namespace FLS_API.BL
             return string.Empty;
         }
 
-        private string BuildPrompt(string userMessage, List<UserMemory> memories, string courseMaterials)
+        private string BuildPrompt(string userMessage, List<UserMemory> memories, string courseMaterials, List<ChatTurnDTO>? history)
         {
             var sb = new StringBuilder();
             
-            sb.AppendLine("You are a friendly AI learning companion and personal assistant. You remember important things about the user and help them with their studies.");
+            sb.AppendLine("You are a helpful, friendly study assistant for university students at FAST.");
+            sb.AppendLine("Your job is to explain concepts clearly, help with assignments and exam prep,");
+            sb.AppendLine("and keep answers focused, structured, and easy to understand.");
+            sb.AppendLine("Use the conversation history and notes about the student to stay consistent,");
+            sb.AppendLine("but do NOT mention any 'memory system', 'REMEMBER/forget' tags, or how you store information.");
             sb.AppendLine();
             
-            // Add memories
+            // Add memories as silent student profile (not to be mentioned explicitly)
             if (memories.Any())
             {
-                sb.AppendLine("What you remember about the user:");
+                sb.AppendLine("Student profile (for your reference only, DO NOT mention these notes explicitly):");
                 foreach (var memory in memories)
                 {
-                    sb.AppendLine($"- [{memory.Id}] {memory.Content} (importance: {memory.Importance}, category: {memory.Category})");
+                    sb.AppendLine($"- {memory.Content} (category: {memory.Category})");
                 }
                 sb.AppendLine();
             }
@@ -97,23 +102,36 @@ namespace FLS_API.BL
             // Add course materials if available
             if (!string.IsNullOrEmpty(courseMaterials))
             {
-                sb.AppendLine("Relevant course materials:");
+                sb.AppendLine("Relevant course materials (for your reference only, summarise or reference as needed):");
                 sb.AppendLine(courseMaterials);
+                sb.AppendLine();
+            }
+
+            // Add recent conversation history so the model can handle multi‑turn context
+            if (history != null && history.Count > 0)
+            {
+                sb.AppendLine("Recent conversation (most recent last):");
+                foreach (var turn in history)
+                {
+                    var speaker = string.Equals(turn.Role, "user", StringComparison.OrdinalIgnoreCase)
+                        ? "Student"
+                        : "Assistant";
+                    sb.AppendLine($"{speaker}: {turn.Message}");
+                }
                 sb.AppendLine();
             }
             
             sb.AppendLine("Instructions:");
-            sb.AppendLine("1. Respond to the user in a friendly, supportive, and conversational way");
-            sb.AppendLine("2. Reference memories when relevant to show you remember them");
-            sb.AppendLine("3. If the user shares something worth remembering, output it in this format:");
-            sb.AppendLine("   [REMEMBER: <what to remember> | IMPORTANCE: <1-10> | CATEGORY: <personal/academic/preferences/goals>]");
-            sb.AppendLine("4. If a memory is no longer relevant or contradicted, output:");
-            sb.AppendLine("   [FORGET: <memory id>]");
-            sb.AppendLine("5. Keep memory updates on separate lines at the end of your response");
+            sb.AppendLine("1. Answer as a supportive tutor: use clear steps, short paragraphs, and concrete examples.");
+            sb.AppendLine("2. Use the recent conversation to understand follow‑up questions and avoid repeating yourself.");
+            sb.AppendLine("3. If you need to remember something important for the future, you may append a hidden line");
+            sb.AppendLine("   using [REMEMBER: ... | IMPORTANCE: 1-10 | CATEGORY: ...], but do NOT explain this to the student.");
+            sb.AppendLine("4. If earlier information is clearly wrong or outdated, you may append [FORGET: <memory-id>] as a");
+            sb.AppendLine("   hidden line, without talking about 'forgetting a memory' in your visible answer.");
             sb.AppendLine();
-            sb.AppendLine($"User: {userMessage}");
+            sb.AppendLine($"Student: {userMessage}");
             sb.AppendLine();
-            sb.AppendLine("AI:");
+            sb.AppendLine("Assistant:");
             return sb.ToString();
         }
 

@@ -45,6 +45,7 @@ namespace FLS_API.DTOs
         public string CourseCode { get; set; } = string.Empty;
         public string CourseName { get; set; } = string.Empty;
         public string? Description { get; set; }
+        public string? SectionName { get; set; }
     }
 
     public class FileUploadDTO

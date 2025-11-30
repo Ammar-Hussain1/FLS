@@ -16,9 +16,6 @@ namespace FLS_API.DL.Models
         [Column("section")]
         public string Name { get; set; } = string.Empty;
 
-        [Column("section_short")]
-        public string? SectionShort { get; set; }
-
         [Column("instructor_name")]
         public string? InstructorName { get; set; }
     }

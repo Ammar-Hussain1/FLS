@@ -45,6 +45,71 @@ namespace FLS_API.Controllers
             return Ok(timetableDtos);
         }
 
+        [HttpGet("my")]
+        public async Task<ActionResult<List<TimetableDTO>>> GetMyTimetable([FromQuery] string userId)
+        {
+            if (string.IsNullOrWhiteSpace(userId))
+            {
+                return BadRequest("User ID is required.");
+            }
+
+            // Load all timetable entries and sections once
+            var timetable = await _timetableService.GetTimetableAsync();
+            if (timetable == null || !timetable.Any())
+            {
+                return Ok(new List<TimetableDTO>());
+            }
+
+            var sections = await _timetableService.GetSectionsAsync();
+            var sectionsDict = sections.ToDictionary(s => s.Id, s => s);
+
+            // Load usercourses for this user via SupabaseService resolved from DI
+            var supabaseService = HttpContext.RequestServices.GetRequiredService<SupabaseService>();
+            var client = supabaseService.Client;
+            var userCoursesResponse = await client.From<FLS_API.Models.UserCourseModel>()
+                .Where(uc => uc.UserId == userId)
+                .Get();
+
+            if (!userCoursesResponse.Models.Any())
+            {
+                return Ok(new List<TimetableDTO>());
+            }
+
+            var userCourses = userCoursesResponse.Models;
+            var courseIds = userCourses.Select(uc => uc.CourseId).Distinct().ToHashSet();
+            var sectionIds = userCourses.Select(uc => uc.SectionId)
+                .Where(id => !string.IsNullOrEmpty(id))
+                .Distinct()
+                .ToHashSet();
+
+            // Filter timetable entries to only those belonging to the user's courses/sections
+            var filteredTimetable = timetable
+                .Where(t => courseIds.Contains(t.CourseId) &&
+                            (sectionIds.Count == 0 ||
+                             string.IsNullOrEmpty(t.SectionId) ||
+                             sectionIds.Contains(t.SectionId)))
+                .ToList();
+
+            var timetableDtos = filteredTimetable.Select(t =>
+            {
+                sectionsDict.TryGetValue(t.SectionId, out var section);
+                return new TimetableDTO
+                {
+                    Id = t.Id,
+                    CourseId = t.CourseId,
+                    SectionId = t.SectionId,
+                    Day = t.Day,
+                    Time = t.Time,
+                    Subject = t.Subject,
+                    Room = t.Room,
+                    InstructorName = section?.InstructorName,
+                    SectionName = section?.Name
+                };
+            }).ToList();
+
+            return Ok(timetableDtos);
+        }
+
         [HttpPost("sync")]
         public async Task<IActionResult> SyncTimetable()
         {

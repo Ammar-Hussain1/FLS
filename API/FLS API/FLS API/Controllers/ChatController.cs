@@ -24,7 +24,7 @@ namespace FLS_API.Controllers
             if (string.IsNullOrEmpty(request.ApiKey))
                 return BadRequest("API key is required.");
 
-            var response = await _chatbotService.ProcessMessageAsync(request.UserId, request.Message, request.ApiKey);
+            var response = await _chatbotService.ProcessMessageAsync(request.UserId, request.Message, request.ApiKey, request.History);
             return Ok(new ChatResponse { Response = response });
         }
     }
