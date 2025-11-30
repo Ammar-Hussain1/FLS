@@ -81,14 +81,20 @@
         </Border>
 
         <!-- Main Content Area -->
-        <Grid Grid.Row="1" Margin="30">
+        <Grid Grid.Row="1" Margin="10">
             
             <!-- Folders Grid (Visible by default) -->
             <Grid x:Name="FoldersGrid" Visibility="Visible">
-                <!-- Folders -->
-                <WrapPanel HorizontalAlignment="Center">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <UniformGrid Rows="2" Columns="3" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="30" >
                     <!-- Quizzes -->
-                    <Button Style="{StaticResource FolderButtonStyle}" Click="Folder_Click" Tag="Quizzes">
+                    <Button Style="{StaticResource FolderButtonStyle}" Click="Folder_Click" Tag="Quizzes" Margin="50">
                         <StackPanel HorizontalAlignment="Center">
                             <TextBlock Text="📝" FontSize="32" HorizontalAlignment="Center" Margin="0,0,0,5"/>
                             <TextBlock Text="Quizzes" FontSize="14" FontWeight="Bold" Foreground="{StaticResource Primary}" HorizontalAlignment="Center"/>
@@ -134,8 +140,9 @@
                             <TextBlock Text="Playlists" FontSize="14" FontWeight="Bold" Foreground="{StaticResource Primary}" HorizontalAlignment="Center"/>
                         </StackPanel>
                     </Button>
-                </WrapPanel>
+                </UniformGrid>
             </Grid>
+
 
             <!-- Items Grid (Hidden by default) -->
             <Grid x:Name="ItemsGrid" Visibility="Collapsed">

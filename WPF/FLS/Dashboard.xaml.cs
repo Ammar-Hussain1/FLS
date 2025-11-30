@@ -168,20 +168,6 @@ namespace FLS
             UpdateTabSelection(MyProgressTab);
         }
 
-        private void SettingsTab_Click(object sender, RoutedEventArgs e)
-        {
-            var settingsView = new TextBlock
-            {
-                Text = "Settings - Coming Soon!",
-                FontSize = 24,
-                HorizontalAlignment = HorizontalAlignment.Center,
-                VerticalAlignment = VerticalAlignment.Center,
-                Foreground = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#2B2D42"))
-            };
-            ContentArea.Content = settingsView;
-            _currentView = null;
-            UpdateTabSelection(SettingsTab);
-        }
 
         private void AIChatTab_Click(object sender, RoutedEventArgs e)
         {
@@ -237,7 +223,6 @@ namespace FLS
             SavedCoursesTab.Background = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#2B2D42"));
             CourseMaterialTab.Background = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#2B2D42"));
             MyProgressTab.Background = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#2B2D42"));
-            SettingsTab.Background = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#2B2D42"));
             AIChatTab.Background = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#2B2D42"));
             UserPlaylistsTab.Background = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#2B2D42"));
 

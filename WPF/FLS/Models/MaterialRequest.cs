@@ -14,6 +14,9 @@ namespace FLS.Models
         [JsonPropertyName("courseName")]
         public string CourseName { get; set; } = string.Empty;
 
+        [JsonPropertyName("courseCode")]
+        public string CourseCode { get; set; } = string.Empty;
+
         [JsonPropertyName("title")]
         public string Title { get; set; } = string.Empty;
 
@@ -32,7 +35,20 @@ namespace FLS.Models
         [JsonPropertyName("uploadedAt")]
         public DateTime UploadedAt { get; set; }
 
-        public string CourseCode => CourseName;
+        [JsonPropertyName("userId")]
+        public string UserId { get; set; } = string.Empty;
+
+        [JsonPropertyName("username")]
+        public string Username { get; set; } = string.Empty;
+
+        [JsonPropertyName("uploadedBy")]
+        public string UploadedBy { get; set; } = string.Empty;
+
+        // Computed property for display - tries multiple fields
+        public string SubmittedBy => !string.IsNullOrEmpty(UploadedBy) ? UploadedBy : 
+                                      !string.IsNullOrEmpty(Username) ? Username : 
+                                      !string.IsNullOrEmpty(UserId) ? UserId : "Unknown";
+
         public string MaterialType => Category;
         public DateTime SubmissionDate => UploadedAt;
     }

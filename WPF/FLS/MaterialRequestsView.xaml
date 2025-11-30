@@ -51,7 +51,7 @@
 
                     <Grid Grid.Row="0" Margin="0,0,0,15">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="100"/>
+                            <ColumnDefinition Width="200"/>
                             <ColumnDefinition Width="150"/>
                             <ColumnDefinition Width="150"/>
                             <ColumnDefinition Width="120"/>
@@ -75,7 +75,7 @@
                                        Padding="0,15">
                                     <Grid>
                                         <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="100"/>
+                                            <ColumnDefinition Width="200"/>
                                             <ColumnDefinition Width="150"/>
                                             <ColumnDefinition Width="150"/>
                                             <ColumnDefinition Width="120"/>
@@ -83,11 +83,17 @@
                                             <ColumnDefinition Width="*"/>
                                         </Grid.ColumnDefinitions>
 
-                                        <TextBlock Grid.Column="0" 
-                                                  Text="{Binding CourseCode}" 
-                                                  FontSize="13" 
-                                                  FontWeight="SemiBold"
-                                                  VerticalAlignment="Center"/>
+                                        <StackPanel Grid.Column="0" 
+                                                   VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding CourseName}" 
+                                                      FontSize="13" 
+                                                      FontWeight="SemiBold"
+                                                      TextWrapping="Wrap"/>
+                                            <TextBlock Text="{Binding CourseCode}" 
+                                                      FontSize="11" 
+                                                      Foreground="#4281A4"
+                                                      Margin="0,2,0,0"/>
+                                        </StackPanel>
                                         <TextBlock Grid.Column="1" 
                                                   Text="{Binding MaterialType}" 
                                                   FontSize="13"

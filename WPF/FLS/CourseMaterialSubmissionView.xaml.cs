@@ -55,11 +55,11 @@ namespace FLS
                 while (hasMorePages)
                 {
                     var response = await _apiClient.GetCoursesAsync(currentPage, pageSize);
-                    
+
                     if (response.Success && response.Data != null)
                     {
                         allCourses.AddRange(response.Data.Data);
-                        
+
                         if (response.Data.Pagination != null)
                         {
                             hasMorePages = response.Data.Pagination.HasNextPage;
@@ -93,9 +93,9 @@ namespace FLS
                         CreatedDate = DateTime.Now
                     });
                 }
-                
+
                 CourseComboBox.ItemsSource = _courses;
-                
+
                 if (_courses.Count == 0)
                 {
                     ShowStatusMessage("No courses found.", false);
@@ -139,6 +139,7 @@ namespace FLS
         {
             ValidateForm();
         }
+
 
         private void BrowseFileButton_Click(object sender, RoutedEventArgs e)
         {
@@ -220,7 +221,7 @@ namespace FLS
         {
             // Re-validate and get selected course from ComboBox
             _selectedCourse = CourseComboBox.SelectedItem as Course;
-            
+
             if (!ValidateForm())
             {
                 MessageBox.Show("Please fill in all required fields and select a valid PDF file.",
@@ -231,7 +232,7 @@ namespace FLS
             // Double-check that course is selected and has valid data
             if (_selectedCourse == null || string.IsNullOrWhiteSpace(_selectedCourse.Name))
             {
-                MessageBox.Show("Please select a valid course.", "Validation Error", 
+                MessageBox.Show("Please select a valid course.", "Validation Error",
                     MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
@@ -265,9 +266,9 @@ namespace FLS
                         _selectedMaterialType = materialType;
                     }
                 }
-                
+
                 string fileType = MapMaterialTypeToFileType(_selectedMaterialType);
-                
+
                 int? year = null;
                 if (!string.IsNullOrWhiteSpace(SemesterTextBox.Text))
                 {
@@ -280,7 +281,7 @@ namespace FLS
 
                 string courseName = _selectedCourse?.Name ?? "Unknown Course";
                 string fileName = !string.IsNullOrEmpty(_selectedFilePath) ? Path.GetFileName(_selectedFilePath) : "Unknown File";
-                
+
                 var response = await _apiClient.UploadMaterialAsync(
                     userId,
                     _selectedFilePath,
@@ -292,7 +293,7 @@ namespace FLS
                 if (response.Success)
                 {
                     ShowStatusMessage("Material submitted successfully! It will be reviewed by an admin.", true);
-                    
+
                     ResetForm();
 
                     MessageBox.Show(
@@ -360,7 +361,7 @@ namespace FLS
             FilePathTextBox.Clear();
             _selectedFilePath = string.Empty;
             _selectedCourse = null;
-            
+
             PdfWebView.Visibility = Visibility.Collapsed;
             NoPreviewPanel.Visibility = Visibility.Visible;
             if (PdfWebView.CoreWebView2 != null)
@@ -391,6 +392,29 @@ namespace FLS
             }
             CourseComboBox.ItemsSource = _courses;
         }
+
+        private void CourseComboBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (CourseComboBox.IsEditable)
+            {
+                string searchText = CourseComboBox.Text.ToLower();
+
+                if (string.IsNullOrWhiteSpace(searchText))
+                {
+                    CourseComboBox.ItemsSource = _courses;
+                }
+                else
+                {
+                    var filteredCourses = _courses.Where(c =>
+                        c.Name.ToLower().Contains(searchText) ||
+                        c.Code.ToLower().Contains(searchText)
+                    ).ToList();
+
+                    CourseComboBox.ItemsSource = filteredCourses;
+                    CourseComboBox.IsDropDownOpen = true;
+                }
+            }
+        }
     }
-}
+    }
 
