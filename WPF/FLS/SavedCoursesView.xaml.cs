@@ -1,8 +1,10 @@
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Net.Http;
 using System.Windows;
 using System.Windows.Controls;
+using FLS.BL;
 using FLS.DL;
 using FLS.Models;
 using FLS.Services;
@@ -13,7 +15,8 @@ namespace FLS
     {
         private ObservableCollection<UserCourse> _savedCourses;
         private Dashboard _parentDashboard;
-        private readonly ApiClient _apiClient;
+        private readonly UserCourseService _userCourseService;
+        private readonly HttpClient _httpClient;
         
         private int _currentPage = 1;
         private int _pageSize = 10;
@@ -25,7 +28,11 @@ namespace FLS
         {
             InitializeComponent();
             _savedCourses = new ObservableCollection<UserCourse>();
-            _apiClient = new ApiClient();
+            
+            _httpClient = new HttpClient();
+            var userCourseApiClient = new UserCourseApiClient(_httpClient);
+            _userCourseService = new UserCourseService(userCourseApiClient);
+            
             LoadSavedCourses();
         }
 
@@ -95,7 +102,7 @@ namespace FLS
 
             try
             {
-                var apiResult = await _apiClient.RemoveUserCourseAsync(userId, courseId);
+                var apiResult = await _userCourseService.RemoveUserCourseAsync(userId, courseId);
                 if (!apiResult.Success)
                 {
                     MessageBox.Show(apiResult.Message ?? "Failed to remove course from your account.",

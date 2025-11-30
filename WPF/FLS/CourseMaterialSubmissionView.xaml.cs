@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using FLS.BL;
 using FLS.DL;
 using FLS.Helpers;
 using FLS.Models;
@@ -19,13 +21,22 @@ namespace FLS
         private Course _selectedCourse;
         private MaterialType _selectedMaterialType;
         private string _selectedFilePath = string.Empty;
-        private readonly ApiClient _apiClient;
+        private readonly CourseService _courseService;
+        private readonly CourseMaterialService _courseMaterialService;
+        private readonly HttpClient _httpClient;
 
         public CourseMaterialSubmissionView()
         {
             InitializeComponent();
             _courses = new ObservableCollection<Course>();
-            _apiClient = new ApiClient();
+            
+            _httpClient = new HttpClient();
+            var courseApiClient = new CourseApiClient(_httpClient);
+            var courseMaterialApiClient = new CourseMaterialApiClient(_httpClient);
+            
+            _courseService = new CourseService(courseApiClient);
+            _courseMaterialService = new CourseMaterialService(courseMaterialApiClient);
+            
             LoadCourses();
             InitializeMaterialTypeComboBox();
             Loaded += CourseMaterialSubmissionView_Loaded;
@@ -54,7 +65,7 @@ namespace FLS
 
                 while (hasMorePages)
                 {
-                    var response = await _apiClient.GetCoursesAsync(currentPage, pageSize);
+                    var response = await _courseService.GetCoursesAsync(currentPage, pageSize);
 
                     if (response.Success && response.Data != null)
                     {
@@ -282,7 +293,7 @@ namespace FLS
                 string courseName = _selectedCourse?.Name ?? "Unknown Course";
                 string fileName = !string.IsNullOrEmpty(_selectedFilePath) ? Path.GetFileName(_selectedFilePath) : "Unknown File";
 
-                var response = await _apiClient.UploadMaterialAsync(
+                var response = await _courseMaterialService.UploadMaterialAsync(
                     userId,
                     _selectedFilePath,
                     _selectedCourse.Name,

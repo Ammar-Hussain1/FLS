@@ -3,12 +3,14 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using FLS.Models;
+using FLS.BL;
 using FLS.DL;
 using FLS.Services;
 
@@ -26,7 +28,10 @@ namespace FLS
         private int _totalCount = 0;
         private string _currentSearch = string.Empty;
         
-        private readonly ApiClient _apiClient;
+        private readonly CourseService _courseService;
+        private readonly UserCourseService _userCourseService;
+        private readonly TimetableService _timetableService;
+        private readonly HttpClient _httpClient;
         private CancellationTokenSource? _searchCancellationTokenSource;
 
         public event Action<ObservableCollection<UserCourse>> SavedCoursesChanged;
@@ -38,7 +43,15 @@ namespace FLS
             
             _courses = new ObservableCollection<Course>();
             _savedCourses = new ObservableCollection<UserCourse>();
-            _apiClient = new ApiClient();
+            
+            _httpClient = new HttpClient();
+            var courseApiClient = new CourseApiClient(_httpClient);
+            var userCourseApiClient = new UserCourseApiClient(_httpClient);
+            var timetableApiClient = new TimetableApiClient(_httpClient);
+            
+            _courseService = new CourseService(courseApiClient);
+            _userCourseService = new UserCourseService(userCourseApiClient);
+            _timetableService = new TimetableService(timetableApiClient);
             
             Loaded += AllCoursesView_Loaded;
         }
@@ -54,7 +67,7 @@ namespace FLS
         {
             try
             {
-                var response = await _apiClient.GetCoursesAsync(_currentPage, _pageSize, _currentSearch);
+                var response = await _courseService.GetCoursesAsync(_currentPage, _pageSize, _currentSearch);
                 
                 if (response.Success && response.Data != null)
                 {
@@ -118,7 +131,7 @@ namespace FLS
 
             try
             {
-                var response = await _apiClient.GetMyCoursesAsync(userId);
+                var response = await _userCourseService.GetMyCoursesAsync(userId);
                 if (!response.Success || response.Data == null)
                 {
                     return;
@@ -224,11 +237,10 @@ namespace FLS
                     return;
                 }
 
-                // Try to fetch all sections for this course from the timetable
                 List<string> sectionsForCourse = new List<string>();
                 try
                 {
-                    var timetableData = await _apiClient.GetTimetableAsync();
+                    var timetableData = await _timetableService.GetTimetableAsync();
                     if (timetableData != null && timetableData.Any())
                     {
                         // First, try strict match on CourseId
@@ -236,8 +248,6 @@ namespace FLS
                             .Where(t => t.CourseId == course.Id)
                             .ToList();
 
-                        // If nothing found (e.g. IDs don't line up for some reason),
-                        // fall back to matching on subject text using course code/name.
                         if (!matchingEntries.Any())
                         {
                             var code = course.Code?.Trim();
@@ -294,8 +304,7 @@ namespace FLS
                         return;
                     }
 
-                    // Persist the saved course to the backend (usercourses table)
-                    var apiResult = await _apiClient.AddUserCourseAsync(userId, course.Id, sectionDialog.Section);
+                    var apiResult = await _userCourseService.AddUserCourseAsync(userId, course.Id, sectionDialog.Section);
                     if (!apiResult.Success)
                     {
                         MessageBox.Show(

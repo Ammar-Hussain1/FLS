@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Navigation;
+using FLS.BL;
 using FLS.DL;
 using FLS.Models;
 using FLS.Services;
@@ -21,7 +22,9 @@ namespace FLS
     {
         private readonly HttpClient _httpClient;
         private readonly string _apiBaseUrl = "http://localhost:5232/api";
-        private readonly ApiClient _apiClient;
+        private readonly CourseService _courseService;
+        private readonly PlaylistService _playlistService;
+        private readonly UserCourseService _userCourseService;
 
         private ObservableCollection<Course> _allCourses;
         private ObservableCollection<Course> _displayedCourses;
@@ -38,7 +41,15 @@ namespace FLS
         {
             InitializeComponent();
             _httpClient = new HttpClient();
-            _apiClient = new ApiClient();
+            
+            var courseApiClient = new CourseApiClient(_httpClient);
+            var playlistApiClient = new PlaylistApiClient(_httpClient);
+            var userCourseApiClient = new UserCourseApiClient(_httpClient);
+            
+            _courseService = new CourseService(courseApiClient);
+            _playlistService = new PlaylistService(playlistApiClient);
+            _userCourseService = new UserCourseService(userCourseApiClient);
+            
             LoadDataAsync();
         }
 
@@ -73,7 +84,7 @@ namespace FLS
 
                 while (hasMorePages)
                 {
-                    var response = await _apiClient.GetCoursesAsync(currentPage, pageSize);
+                    var response = await _courseService.GetCoursesAsync(currentPage, pageSize);
                     if (response.Success && response.Data != null)
                     {
                         foreach (var courseDto in response.Data.Data)
@@ -120,7 +131,7 @@ namespace FLS
             try
             {
                 var userId = SessionManager.Instance.GetCurrentUserId();
-                var response = await _apiClient.GetMyCoursesAsync(userId);
+                var response = await _userCourseService.GetMyCoursesAsync(userId);
 
                 if (response.Success && response.Data != null)
                 {
@@ -145,17 +156,7 @@ namespace FLS
             try
             {
                 var userId = SessionManager.Instance.GetCurrentUserId();
-                var response = await _httpClient.GetAsync($"{_apiBaseUrl}/Playlist/community?userId={userId}");
-
-                if (response.IsSuccessStatusCode)
-                {
-                    _allCommunityPlaylists = await response.Content.ReadFromJsonAsync<List<CommunityPlaylist>>()
-                        ?? new List<CommunityPlaylist>();
-                }
-                else
-                {
-                    _allCommunityPlaylists = new List<CommunityPlaylist>();
-                }
+                _allCommunityPlaylists = await _playlistService.GetCommunityPlaylistsAsync(userId);
             }
             catch
             {

@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using FLS.BL;
 using FLS.DL;
 using FLS.Models;
 using FLS.Services;
@@ -17,15 +18,22 @@ namespace FLS
     {
         private ObservableCollection<TimetableRow> _timetableRows;
         private List<TimetableSlot> _allSlots;
-        private readonly ApiClient _apiClient;
+        private readonly TimetableService _timetableService;
+        private readonly CourseService _courseService;
         private readonly HttpClient _httpClient;
 
         public TimetableView()
         {
             InitializeComponent();
             _timetableRows = new ObservableCollection<TimetableRow>();
-            _apiClient = new ApiClient();
+            
             _httpClient = new HttpClient();
+            var timetableApiClient = new TimetableApiClient(_httpClient);
+            var courseApiClient = new CourseApiClient(_httpClient);
+            
+            _timetableService = new TimetableService(timetableApiClient);
+            _courseService = new CourseService(courseApiClient);
+            
             TimetableGrid.ItemsSource = _timetableRows;
             LoadTimetableDataAsync();
         }
@@ -59,7 +67,7 @@ namespace FLS
                 }
 
                 // Fetch user-specific timetable data from API
-                var timetableData = await _apiClient.GetMyTimetableAsync(userId);
+                var timetableData = await _timetableService.GetMyTimetableAsync(userId);
 
                 if (timetableData == null || !timetableData.Any())
                 {
@@ -76,7 +84,7 @@ namespace FLS
 
                 while (hasMorePages)
                 {
-                    var coursesResponse = await _apiClient.GetCoursesAsync(currentPage, pageSize);
+                    var coursesResponse = await _courseService.GetCoursesAsync(currentPage, pageSize);
                     if (coursesResponse.Success && coursesResponse.Data != null)
                     {
                         allCourses.AddRange(coursesResponse.Data.Data);
