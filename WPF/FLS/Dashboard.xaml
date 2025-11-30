@@ -122,7 +122,7 @@
                     </Button>
 
                     <Button Name="MyProgressTab"
-                            Content="📊 My Progress"
+                            Content="📊 My TimeTable"
                             FontSize="18"
                             FontWeight="SemiBold"
                             Background="Transparent"
@@ -146,31 +146,7 @@
                         </Button.Style>
                     </Button>
 
-                    <Button Name="SettingsTab"
-                            Content="⚙️ Settings"
-                            FontSize="18"
-                            FontWeight="SemiBold"
-                            Background="Transparent"
-                            Foreground="{StaticResource Surface}"
-                            BorderThickness="0"
-                            Padding="15,15"
-                            HorizontalAlignment="Stretch"
-                            HorizontalContentAlignment="Left"
-                            Cursor="Hand"
-                            Click="SettingsTab_Click"
-                            Margin="0,0,0,10">
-                        <Button.Style>
-                            <Style TargetType="Button">
-                                <Setter Property="Background" Value="Transparent"/>
-                                <Style.Triggers>
-                                    <Trigger Property="IsMouseOver" Value="True">
-                                        <Setter Property="Background" Value="{StaticResource SidebarHover}"/>
-                                    </Trigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Button.Style>
-                    </Button>
-
+                   
                     <Button Name="AIChatTab"
                             Content="🤖 AI Chat"
                             FontSize="18"
