@@ -7,7 +7,7 @@ namespace FLS.Services
         private static SessionManager? _instance;
         private static readonly object _lock = new object();
 
-        public Guid? CurrentUserId { get; private set; }
+        public string? CurrentUserId { get; private set; }
         public string? CurrentUserName { get; private set; }
         public string? CurrentUserEmail { get; private set; }
         public bool IsAdmin { get; private set; }
@@ -32,7 +32,7 @@ namespace FLS.Services
             }
         }
 
-        public void Login(Guid userId, string userName, string email, bool isAdmin = false)
+        public void Login(string userId, string userName, string email, bool isAdmin = false)
         {
             CurrentUserId = userId;
             CurrentUserName = userName;
@@ -50,16 +50,16 @@ namespace FLS.Services
 
         public bool IsLoggedIn()
         {
-            return CurrentUserId.HasValue;
+            return !string.IsNullOrEmpty(CurrentUserId);
         }
 
-        public Guid GetCurrentUserId()
+        public string GetCurrentUserId()
         {
-            if (!CurrentUserId.HasValue)
+            if (string.IsNullOrEmpty(CurrentUserId))
             {
                 throw new InvalidOperationException("No user is currently logged in.");
             }
-            return CurrentUserId.Value;
+            return CurrentUserId;
         }
     }
 }

@@ -60,6 +60,26 @@ namespace FLS.DL
             }
         }
 
+        public async Task<List<TimetableDTO>> GetTimetableAsync()
+        {
+            var response = await _httpClient.GetAsync($"{API_BASE_URL}/api/Timetable");
+            
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorContent = await response.Content.ReadAsStringAsync();
+                throw new HttpRequestException($"API returned {response.StatusCode}: {errorContent}");
+            }
+
+            var responseJson = await response.Content.ReadAsStringAsync();
+            var options = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            };
+
+            var timetable = JsonSerializer.Deserialize<List<TimetableDTO>>(responseJson, options);
+            return timetable ?? new List<TimetableDTO>();
+        }
+
         public async Task<ApiResponse<UserResponse>> SignInAsync(SignInRequest request)
         {
             var json = JsonSerializer.Serialize(request);

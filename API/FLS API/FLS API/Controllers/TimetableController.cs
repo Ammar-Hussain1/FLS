@@ -1,5 +1,6 @@
 using FLS_API.BL;
 using FLS_API.DL.Models;
+using FLS_API.DTOs;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FLS_API.Controllers
@@ -16,10 +17,32 @@ namespace FLS_API.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<List<TimeTable>>> GetTimetable()
+        public async Task<ActionResult<List<TimetableDTO>>> GetTimetable()
         {
             var timetable = await _timetableService.GetTimetableAsync();
-            return Ok(timetable);
+            
+            // Fetch all sections to get instructor names
+            var sections = await _timetableService.GetSectionsAsync();
+            var sectionsDict = sections.ToDictionary(s => s.Id, s => s);
+            
+            var timetableDtos = timetable.Select(t => 
+            {
+                var section = sectionsDict.GetValueOrDefault(t.SectionId);
+                return new TimetableDTO
+                {
+                    Id = t.Id,
+                    CourseId = t.CourseId,
+                    SectionId = t.SectionId,
+                    Day = t.Day,
+                    Time = t.Time,
+                    Subject = t.Subject,
+                    Room = t.Room,
+                    InstructorName = section?.InstructorName,
+                    SectionName = section?.Name
+                };
+            }).ToList();
+            
+            return Ok(timetableDtos);
         }
 
         [HttpPost("sync")]

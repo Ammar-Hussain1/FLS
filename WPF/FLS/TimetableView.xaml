@@ -132,6 +132,7 @@
                         <!-- Days Header -->
                         <Grid Grid.Row="0" Margin="0,0,0,15">
                             <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="120"/>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="*"/>
@@ -140,30 +141,36 @@
                             </Grid.ColumnDefinitions>
 
                             <TextBlock Grid.Column="0" 
-                                      Text="Monday"
+                                      Text="Time"
                                       FontSize="14"
                                       FontWeight="Bold"
                                       Foreground="{StaticResource Primary}"
                                       HorizontalAlignment="Center"/>
                             <TextBlock Grid.Column="1" 
-                                      Text="Tuesday"
+                                      Text="Monday"
                                       FontSize="14"
                                       FontWeight="Bold"
                                       Foreground="{StaticResource Primary}"
                                       HorizontalAlignment="Center"/>
                             <TextBlock Grid.Column="2" 
-                                      Text="Wednesday"
+                                      Text="Tuesday"
                                       FontSize="14"
                                       FontWeight="Bold"
                                       Foreground="{StaticResource Primary}"
                                       HorizontalAlignment="Center"/>
                             <TextBlock Grid.Column="3" 
-                                      Text="Thursday"
+                                      Text="Wednesday"
                                       FontSize="14"
                                       FontWeight="Bold"
                                       Foreground="{StaticResource Primary}"
                                       HorizontalAlignment="Center"/>
                             <TextBlock Grid.Column="4" 
+                                      Text="Thursday"
+                                      FontSize="14"
+                                      FontWeight="Bold"
+                                      Foreground="{StaticResource Primary}"
+                                      HorizontalAlignment="Center"/>
+                            <TextBlock Grid.Column="5" 
                                       Text="Friday"
                                       FontSize="14"
                                       FontWeight="Bold"
@@ -177,6 +184,7 @@
                                 <DataTemplate>
                                     <Grid Margin="0,0,0,10">
                                         <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="120"/>
                                             <ColumnDefinition Width="*"/>
                                             <ColumnDefinition Width="*"/>
                                             <ColumnDefinition Width="*"/>
@@ -184,16 +192,31 @@
                                             <ColumnDefinition Width="*"/>
                                         </Grid.ColumnDefinitions>
 
+                                        <!-- Time Slot -->
+                                        <Border Grid.Column="0" 
+                                               Background="{StaticResource Accent}"
+                                               CornerRadius="8"
+                                               Padding="10"
+                                               Margin="0,0,5,0"
+                                               VerticalAlignment="Stretch">
+                                            <TextBlock Text="{Binding TimeSlot}"
+                                                      FontSize="12"
+                                                      FontWeight="SemiBold"
+                                                      Foreground="White"
+                                                      HorizontalAlignment="Center"
+                                                      VerticalAlignment="Center"/>
+                                        </Border>
+
                                         <!-- Monday -->
-                                        <ContentControl Grid.Column="0" Content="{Binding Monday}" Margin="5,0"/>
+                                        <ContentControl Grid.Column="1" Content="{Binding Monday}" Margin="5,0"/>
                                         <!-- Tuesday -->
-                                        <ContentControl Grid.Column="1" Content="{Binding Tuesday}" Margin="5,0"/>
+                                        <ContentControl Grid.Column="2" Content="{Binding Tuesday}" Margin="5,0"/>
                                         <!-- Wednesday -->
-                                        <ContentControl Grid.Column="2" Content="{Binding Wednesday}" Margin="5,0"/>
+                                        <ContentControl Grid.Column="3" Content="{Binding Wednesday}" Margin="5,0"/>
                                         <!-- Thursday -->
-                                        <ContentControl Grid.Column="3" Content="{Binding Thursday}" Margin="5,0"/>
+                                        <ContentControl Grid.Column="4" Content="{Binding Thursday}" Margin="5,0"/>
                                         <!-- Friday -->
-                                        <ContentControl Grid.Column="4" Content="{Binding Friday}" Margin="5,0"/>
+                                        <ContentControl Grid.Column="5" Content="{Binding Friday}" Margin="5,0"/>
                                     </Grid>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
