@@ -23,6 +23,9 @@ namespace WpfLoginApp
             this.ResizeMode = ResizeMode.CanResize;
             this.WindowStyle = WindowStyle.SingleBorderWindow;
 
+            Loaded += (s, e) => UsernameTextBox.Focus();
+
+
             _apiClient = new ApiClient();
         }
 
@@ -104,7 +107,6 @@ namespace WpfLoginApp
             }
         }
 
-        private void Login_Click(object sender, RoutedEventArgs e) { }
 
        
     }

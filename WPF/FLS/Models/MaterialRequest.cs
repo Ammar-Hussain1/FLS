@@ -38,10 +38,6 @@ namespace FLS.Models
         [JsonPropertyName("uploadedByName")]
         public string? UploadedByName { get; set; }
 
-        // For now, the API does not return a separate course code for
-        // material requests, so we expose CourseName via CourseCode to
-        // keep existing XAML bindings working.
-        public string CourseCode => CourseName;
         public string MaterialType => Category;
         public DateTime SubmissionDate => UploadedAt;
         public string SubmittedBy => UploadedByName ?? UploadedBy ?? "Unknown";
