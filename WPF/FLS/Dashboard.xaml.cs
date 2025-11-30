@@ -23,7 +23,8 @@ namespace FLS
         {
             InitializeComponent();
             this.WindowState = WindowState.Maximized;
-            this.ResizeMode = ResizeMode.NoResize;
+            this.ResizeMode = ResizeMode.CanResize;
+            this.WindowStyle = WindowStyle.SingleBorderWindow;
             LoadAllCoursesView();
         }
 

@@ -93,17 +93,6 @@ namespace FLS
             }
         }
 
-        private void AddCourseButton_Click(object sender, RoutedEventArgs e)
-        {
-            AddCourseForm.Visibility = AddCourseForm.Visibility == Visibility.Visible 
-                ? Visibility.Collapsed 
-                : Visibility.Visible;
-            
-            if (AddCourseForm.Visibility == Visibility.Visible)
-            {
-                ClearForm();
-            }
-        }
 
         private void CancelButton_Click(object sender, RoutedEventArgs e)
         {

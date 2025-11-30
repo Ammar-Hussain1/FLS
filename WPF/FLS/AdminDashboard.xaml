@@ -53,31 +53,7 @@
                 <!-- Navigation -->
                 <StackPanel Grid.Row="1" 
                             Margin="10,20,10,20">
-                    <Button Name="CourseManagementTab"
-                            Content="📚 Course Management"
-                            FontSize="18"
-                            FontWeight="SemiBold"
-                            Background="Transparent"
-                            Foreground="{StaticResource Surface}"
-                            BorderThickness="0"
-                            Padding="15,15"
-                            HorizontalAlignment="Stretch"
-                            HorizontalContentAlignment="Left"
-                            Cursor="Hand"
-                            Click="CourseManagementTab_Click"
-                            Margin="0,0,0,10">
-                        <Button.Style>
-                            <Style TargetType="Button">
-                                <Setter Property="Background" Value="Transparent"/>
-                                <Style.Triggers>
-                                    <Trigger Property="IsMouseOver" Value="True">
-                                        <Setter Property="Background" Value="{StaticResource SidebarHover}"/>
-                                    </Trigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Button.Style>
-                    </Button>
-
+                    
                     <Button Name="MaterialRequestsTab"
                             Content="📄 Material Requests"
                             FontSize="18"

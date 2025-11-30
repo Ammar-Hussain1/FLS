@@ -29,17 +29,6 @@
                            FontWeight="Bold" 
                            Foreground="{StaticResource Surface}"
                            VerticalAlignment="Center"/>
-                <Button Name="AddCourseButton"
-                        Grid.Column="1"
-                        Content="+ Add Course"
-                        FontSize="18"
-                        FontWeight="SemiBold"
-                        Background="{StaticResource Success}"
-                        Foreground="{StaticResource Surface}"
-                        Padding="20,10"
-                        BorderThickness="0"
-                        Cursor="Hand"
-                        Click="AddCourseButton_Click"/>
             </Grid>
         </Border>
 

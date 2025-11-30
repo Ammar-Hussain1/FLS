@@ -19,7 +19,9 @@ namespace WpfLoginApp
         {
             InitializeComponent();
             this.WindowState = WindowState.Maximized;
-            this.ResizeMode = ResizeMode.NoResize;
+            this.ResizeMode = ResizeMode.CanResize;
+            this.WindowStyle = WindowStyle.SingleBorderWindow;
+
             _apiClient = new ApiClient();
         }
 
