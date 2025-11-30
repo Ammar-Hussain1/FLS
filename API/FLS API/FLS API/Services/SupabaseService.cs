@@ -299,7 +299,25 @@ namespace FLS_API.BL
                 }
 
                 var materialsResponse = await materialsQuery.Get();
-                var materials = materialsResponse.Models.Select(m => new MaterialResponseDTO
+                var materials = materialsResponse.Models.ToList();
+                
+                // Fetch user names if needed
+                var userIds = materials
+                    .Where(m => !string.IsNullOrEmpty(m.UploadedBy))
+                    .Select(m => m.UploadedBy!)
+                    .Distinct()
+                    .ToHashSet();
+                
+                var usersDict = new Dictionary<string, string>();
+                if (userIds.Any())
+                {
+                    var usersResponse = await _client.From<User>().Get();
+                    usersDict = usersResponse.Models
+                        .Where(u => userIds.Contains(u.Id))
+                        .ToDictionary(u => u.Id, u => u.FullName);
+                }
+                
+                var materialsDto = materials.Select(m => new MaterialResponseDTO
                 {
                     Id = m.Id,
                     CourseId = m.CourseId,
@@ -309,10 +327,14 @@ namespace FLS_API.BL
                     FilePath = m.FilePath,
                     Year = m.Year,
                     Status = m.Status,
-                    UploadedAt = m.UploadedAt
+                    UploadedAt = m.UploadedAt,
+                    UploadedBy = m.UploadedBy,
+                    UploadedByName = !string.IsNullOrEmpty(m.UploadedBy) 
+                        ? usersDict.GetValueOrDefault(m.UploadedBy, "Unknown User") 
+                        : null
                 }).ToList();
 
-                var materialsByCategory = materials
+                var materialsByCategory = materialsDto
                     .GroupBy(m => m.Category)
                     .ToDictionary(g => g.Key, g => g.OrderByDescending(m => m.Year ?? 0).ThenBy(m => m.Title).ToList());
 
@@ -354,6 +376,16 @@ namespace FLS_API.BL
                     .Get();
                 var course = courseResponse.Models.FirstOrDefault();
 
+                // Fetch user name
+                string? userName = null;
+                if (!string.IsNullOrEmpty(material.UploadedBy))
+                {
+                    var userResponse = await _client.From<User>()
+                        .Where(u => u.Id == material.UploadedBy)
+                        .Get();
+                    userName = userResponse.Models.FirstOrDefault()?.FullName ?? "Unknown User";
+                }
+
                 var result = new MaterialResponseDTO
                 {
                     Id = material.Id,
@@ -364,7 +396,9 @@ namespace FLS_API.BL
                     FilePath = material.FilePath,
                     Year = material.Year,
                     Status = material.Status,
-                    UploadedAt = material.UploadedAt
+                    UploadedAt = material.UploadedAt,
+                    UploadedBy = material.UploadedBy,
+                    UploadedByName = userName
                 };
 
                 return ServiceResult<MaterialResponseDTO>.Success(result);
@@ -415,6 +449,12 @@ namespace FLS_API.BL
 
                 var title = ExtractTitleFromLink(request.FileLink) ?? $"Material - {request.FileType}";
 
+                // Fetch user name
+                var userResponse = await _client.From<User>()
+                    .Where(u => u.Id == userId)
+                    .Get();
+                var userName = userResponse.Models.FirstOrDefault()?.FullName ?? "Unknown User";
+
                 var material = new CourseMaterial
                 {
                     Id = Guid.NewGuid().ToString(),
@@ -440,7 +480,9 @@ namespace FLS_API.BL
                     FilePath = material.FilePath,
                     Year = material.Year,
                     Status = material.Status,
-                    UploadedAt = material.UploadedAt
+                    UploadedAt = material.UploadedAt,
+                    UploadedBy = material.UploadedBy,
+                    UploadedByName = userName
                 };
 
                 return ServiceResult<MaterialResponseDTO>.Success(result);
@@ -469,11 +511,18 @@ namespace FLS_API.BL
                     return ServiceResult<List<MaterialResponseDTO>>.Success(new List<MaterialResponseDTO>());
                 }
                 
+                // Fetch courses
                 var allCoursesResponse = await _client.From<Course>().Get();
                 var courseIds = materials.Select(m => m.CourseId).Distinct().ToHashSet();
                 var courses = allCoursesResponse.Models
                     .Where(c => courseIds.Contains(c.Id))
                     .ToDictionary(c => c.Id, c => c.Name);
+
+                // Fetch user name
+                var userResponse = await _client.From<User>()
+                    .Where(u => u.Id == userId)
+                    .Get();
+                var userName = userResponse.Models.FirstOrDefault()?.FullName ?? "Unknown User";
 
                 var result = materials
                     .OrderByDescending(m => m.UploadedAt)
@@ -487,7 +536,9 @@ namespace FLS_API.BL
                         FilePath = m.FilePath,
                         Year = m.Year,
                         Status = m.Status,
-                        UploadedAt = m.UploadedAt
+                        UploadedAt = m.UploadedAt,
+                        UploadedBy = m.UploadedBy,
+                        UploadedByName = userName
                     }).ToList();
 
                 return ServiceResult<List<MaterialResponseDTO>>.Success(result);
@@ -513,11 +564,24 @@ namespace FLS_API.BL
                     return ServiceResult<List<MaterialResponseDTO>>.Success(new List<MaterialResponseDTO>());
                 }
                 
+                // Fetch courses
                 var allCoursesResponse = await _client.From<Course>().Get();
                 var courseIds = materials.Select(m => m.CourseId).Distinct().ToHashSet();
                 var courses = allCoursesResponse.Models
                     .Where(c => courseIds.Contains(c.Id))
                     .ToDictionary(c => c.Id, c => c.Name);
+
+                // Fetch users to get names
+                var userIds = materials
+                    .Where(m => !string.IsNullOrEmpty(m.UploadedBy))
+                    .Select(m => m.UploadedBy!)
+                    .Distinct()
+                    .ToHashSet();
+                
+                var usersResponse = await _client.From<User>().Get();
+                var users = usersResponse.Models
+                    .Where(u => userIds.Contains(u.Id))
+                    .ToDictionary(u => u.Id, u => u.FullName);
 
                 var result = materials
                     .OrderByDescending(m => m.UploadedAt)
@@ -531,7 +595,11 @@ namespace FLS_API.BL
                         FilePath = m.FilePath,
                         Year = m.Year,
                         Status = m.Status,
-                        UploadedAt = m.UploadedAt
+                        UploadedAt = m.UploadedAt,
+                        UploadedBy = m.UploadedBy,
+                        UploadedByName = !string.IsNullOrEmpty(m.UploadedBy) 
+                            ? users.GetValueOrDefault(m.UploadedBy, "Unknown User") 
+                            : null
                     }).ToList();
 
                 return ServiceResult<List<MaterialResponseDTO>>.Success(result);
@@ -697,6 +765,16 @@ namespace FLS_API.BL
                 material.Status = "Approved";
                 await _client.From<CourseMaterial>().Update(material);
 
+                // Fetch user name
+                string? userName = null;
+                if (!string.IsNullOrEmpty(material.UploadedBy))
+                {
+                    var userResponse = await _client.From<User>()
+                        .Where(u => u.Id == material.UploadedBy)
+                        .Get();
+                    userName = userResponse.Models.FirstOrDefault()?.FullName ?? "Unknown User";
+                }
+
                 var result = new MaterialResponseDTO
                 {
                     Id = material.Id,
@@ -707,7 +785,9 @@ namespace FLS_API.BL
                     FilePath = material.FilePath,
                     Year = material.Year,
                     Status = material.Status,
-                    UploadedAt = material.UploadedAt
+                    UploadedAt = material.UploadedAt,
+                    UploadedBy = material.UploadedBy,
+                    UploadedByName = userName
                 };
 
                 return ServiceResult<MaterialResponseDTO>.Success(result);
@@ -743,6 +823,16 @@ namespace FLS_API.BL
                     .Get();
                 var course = courseResponse.Models.FirstOrDefault();
 
+                // Fetch user name
+                string? userName = null;
+                if (!string.IsNullOrEmpty(material.UploadedBy))
+                {
+                    var userResponse = await _client.From<User>()
+                        .Where(u => u.Id == material.UploadedBy)
+                        .Get();
+                    userName = userResponse.Models.FirstOrDefault()?.FullName ?? "Unknown User";
+                }
+
                 var result = new MaterialResponseDTO
                 {
                     Id = material.Id,
@@ -753,7 +843,9 @@ namespace FLS_API.BL
                     FilePath = material.FilePath,
                     Year = material.Year,
                     Status = material.Status,
-                    UploadedAt = material.UploadedAt
+                    UploadedAt = material.UploadedAt,
+                    UploadedBy = material.UploadedBy,
+                    UploadedByName = userName
                 };
 
                 return ServiceResult<MaterialResponseDTO>.Success(result);

@@ -32,8 +32,15 @@ namespace FLS.Models
         [JsonPropertyName("uploadedAt")]
         public DateTime UploadedAt { get; set; }
 
+        [JsonPropertyName("uploadedBy")]
+        public string? UploadedBy { get; set; }
+
+        [JsonPropertyName("uploadedByName")]
+        public string? UploadedByName { get; set; }
+
         public string CourseCode => CourseName;
         public string MaterialType => Category;
         public DateTime SubmissionDate => UploadedAt;
+        public string SubmittedBy => UploadedByName ?? UploadedBy ?? "Unknown";
     }
 }
