@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using FLS;
 using FLS.DL;
 using FLS.Models;
+using FLS.Services;
 
 namespace WpfLoginApp
 {
@@ -59,11 +60,15 @@ namespace WpfLoginApp
 
                 if (response.Success && response.Data != null)
                 {
-                    // Store user info (you might want to create a UserSession helper)
+                    // Store user info in session
                     var user = response.Data;
+                    bool isAdmin = user.Role.Equals("admin", StringComparison.OrdinalIgnoreCase);
+                    
+                    // Initialize session
+                    SessionManager.Instance.Login(user.Id, user.FullName, user.Email, isAdmin);
 
                     // Check if admin
-                    if (user.Role.Equals("admin", StringComparison.OrdinalIgnoreCase))
+                    if (isAdmin)
                     {
                         AdminDashboard adminDashboard = new AdminDashboard();
                         adminDashboard.Show();

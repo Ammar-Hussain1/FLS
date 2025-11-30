@@ -1,92 +1,107 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Net.Http;
+using System.Net.Http.Json;
+using System.Text;
+using System.Text.Json;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using FLS.Models;
+using FLS.Services;
 
 namespace FLS
 {
     public partial class PlaylistRequestsAdminView : UserControl
     {
+        private readonly HttpClient _httpClient;
+        private readonly string _apiBaseUrl = "http://localhost:5000/api";
+
         private ObservableCollection<PlaylistRequest> _requests;
 
         public PlaylistRequestsAdminView()
         {
             InitializeComponent();
+            _httpClient = new HttpClient();
             _requests = new ObservableCollection<PlaylistRequest>();
             PlaylistRequestsListView.ItemsSource = _requests;
-            LoadDummyRequests();
+            LoadRequestsAsync();
         }
 
-        private void LoadDummyRequests()
+        private async Task LoadRequestsAsync()
         {
-            _requests.Add(new PlaylistRequest
+            try
             {
-                Id = 1,
-                CourseCode = "CS101",
-                PlaylistName = "Programming Basics",
-                Url = "https://youtube.com/playlist?list=ABC123",
-                SubmittedBy = "Ali Ahmed",
-                SubmissionDate = DateTime.Now.AddDays(-3),
-                Status = "Pending"
-            });
-
-            _requests.Add(new PlaylistRequest
+                var response = await _httpClient.GetAsync($"{_apiBaseUrl}/Playlist/requests");
+                
+                if (response.IsSuccessStatusCode)
+                {
+                    var requests = await response.Content.ReadFromJsonAsync<List<PlaylistRequest>>() 
+                        ?? new List<PlaylistRequest>();
+                    
+                    _requests.Clear();
+                    foreach (var request in requests)
+                    {
+                        _requests.Add(request);
+                    }
+                }
+                else
+                {
+                    MessageBox.Show("Failed to load playlist requests.", "Error", 
+                        MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+            catch (Exception ex)
             {
-                Id = 2,
-                CourseCode = "MATH201",
-                PlaylistName = "Calculus Tutorials",
-                Url = "https://youtube.com/playlist?list=XYZ789",
-                SubmittedBy = "Sara Khan",
-                SubmissionDate = DateTime.Now.AddDays(-1),
-                Status = "Pending"
-            });
-
-            _requests.Add(new PlaylistRequest
-            {
-                Id = 3,
-                CourseCode = "PHY101",
-                PlaylistName = "Physics Lectures",
-                Url = "https://youtube.com/playlist?list=PHY456",
-                SubmittedBy = "Hassan Ali",
-                SubmissionDate = DateTime.Now.AddDays(-5),
-                Status = "Approved"
-            });
-
-            _requests.Add(new PlaylistRequest
-            {
-                Id = 4,
-                CourseCode = "CS102",
-                PlaylistName = "Data Structures Guide",
-                Url = "https://youtube.com/playlist?list=DS2024",
-                SubmittedBy = "Fatima Noor",
-                SubmissionDate = DateTime.Now.AddDays(-2),
-                Status = "Pending"
-            });
+                MessageBox.Show($"Error loading requests: {ex.Message}", "Error", 
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
-        private void AcceptButton_Click(object sender, RoutedEventArgs e)
+        private async void AcceptButton_Click(object sender, RoutedEventArgs e)
         {
             var button = sender as Button;
-            if (button?.Tag is int requestId)
+            if (button?.Tag is Guid requestId)
             {
-                var request = _requests.FirstOrDefault(r => r.Id == requestId);
-                if (request != null)
+                try
                 {
-                    request.Status = "Approved";
-                    MessageBox.Show($"Playlist '{request.PlaylistName}' for {request.CourseCode} has been approved!",
-                        "Request Approved", MessageBoxButton.OK, MessageBoxImage.Information);
+                    var approveDto = new { AdminId = SessionManager.Instance.GetCurrentUserId() };
+                    var json = JsonSerializer.Serialize(approveDto);
+                    var content = new StringContent(json, Encoding.UTF8, "application/json");
                     
-                    RefreshView();
+                    var response = await _httpClient.PutAsync($"{_apiBaseUrl}/Playlist/approve/{requestId}", content);
+                    
+                    if (response.IsSuccessStatusCode)
+                    {
+                        var request = _requests.FirstOrDefault(r => r.Id == requestId);
+                        if (request != null)
+                        {
+                            MessageBox.Show($"Playlist '{request.PlaylistName}' for {request.CourseCode} has been approved!",
+                                "Request Approved", MessageBoxButton.OK, MessageBoxImage.Information);
+                        }
+                        
+                        await LoadRequestsAsync();
+                    }
+                    else
+                    {
+                        MessageBox.Show("Failed to approve request.", "Error", 
+                            MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Error approving request: {ex.Message}", "Error", 
+                        MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             }
         }
 
-        private void RejectButton_Click(object sender, RoutedEventArgs e)
+        private async void RejectButton_Click(object sender, RoutedEventArgs e)
         {
             var button = sender as Button;
-            if (button?.Tag is int requestId)
+            if (button?.Tag is Guid requestId)
             {
                 var request = _requests.FirstOrDefault(r => r.Id == requestId);
                 if (request != null)
@@ -99,23 +114,38 @@ namespace FLS
 
                     if (result == MessageBoxResult.Yes)
                     {
-                        request.Status = "Rejected";
-                        MessageBox.Show($"Playlist '{request.PlaylistName}' has been rejected.",
-                            "Request Rejected", MessageBoxButton.OK, MessageBoxImage.Information);
-                        
-                        RefreshView();
+                        try
+                        {
+                            var rejectDto = new 
+                            { 
+                                AdminId = SessionManager.Instance.GetCurrentUserId(),
+                                Reason = "Does not meet quality standards" // TODO: Add input dialog for reason
+                            };
+                            var json = JsonSerializer.Serialize(rejectDto);
+                            var content = new StringContent(json, Encoding.UTF8, "application/json");
+                            
+                            var response = await _httpClient.PutAsync($"{_apiBaseUrl}/Playlist/reject/{requestId}", content);
+                            
+                            if (response.IsSuccessStatusCode)
+                            {
+                                MessageBox.Show($"Playlist '{request.PlaylistName}' has been rejected.",
+                                    "Request Rejected", MessageBoxButton.OK, MessageBoxImage.Information);
+                                
+                                await LoadRequestsAsync();
+                            }
+                            else
+                            {
+                                MessageBox.Show("Failed to reject request.", "Error", 
+                                    MessageBoxButton.OK, MessageBoxImage.Error);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            MessageBox.Show($"Error rejecting request: {ex.Message}", "Error", 
+                                MessageBoxButton.OK, MessageBoxImage.Error);
+                        }
                     }
                 }
-            }
-        }
-
-        private void RefreshView()
-        {
-            var temp = _requests.ToList();
-            _requests.Clear();
-            foreach (var item in temp)
-            {
-                _requests.Add(item);
             }
         }
     }

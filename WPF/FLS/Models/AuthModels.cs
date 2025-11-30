@@ -1,3 +1,4 @@
+using System;
 using System.Text.Json.Serialization;
 
 namespace FLS.Models
@@ -26,7 +27,7 @@ namespace FLS.Models
     public class UserResponse
     {
         [JsonPropertyName("id")]
-        public string Id { get; set; } = string.Empty;
+        public Guid Id { get; set; }
 
         [JsonPropertyName("fullName")]
         public string FullName { get; set; } = string.Empty;
@@ -56,4 +57,3 @@ namespace FLS.Models
         public string? ErrorCode { get; set; }
     }
 }
-

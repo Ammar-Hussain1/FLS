@@ -9,6 +9,7 @@ using FLS.Models;
 using FLS.Helpers;
 using FLS.BL;
 using FLS.DL;
+using FLS.Services;
 
 namespace FLS
 {
@@ -21,7 +22,6 @@ namespace FLS
         private ObservableCollection<ChatMessage> _messages;
         private ChatService _chatService;
         private ChatHistoryRepository _historyRepository;
-        private const int CURRENT_USER_ID = 1;
         private bool _isLoading = false;
         private string _userApiKey = string.Empty;
 
@@ -135,8 +135,19 @@ namespace FLS
 
             try
             {
+                // Check if user is logged in
+                if (!SessionManager.Instance.IsLoggedIn())
+                {
+                    _messages.Remove(loadingMessage);
+                    AddAIMessage("⚠️ Please log in to use the chatbot.");
+                    return;
+                }
+
+                // Get current user ID from session
+                var userId = SessionManager.Instance.GetCurrentUserId();
+                
                 // Call business logic layer
-                var response = await _chatService.SendMessageAsync(CURRENT_USER_ID, message);
+                var response = await _chatService.SendMessageAsync(userId, message);
 
                 // Remove loading and add AI response
                 _messages.Remove(loadingMessage);
