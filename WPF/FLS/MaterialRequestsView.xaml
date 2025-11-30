@@ -117,66 +117,18 @@
                                                    HorizontalAlignment="Left">
                                             <Button Content="✓ Accept"
                                                    Tag="{Binding Id}"
+                                                   Style="{StaticResource SuccessButtonStyle}"
                                                    FontSize="12"
-                                                   Background="{StaticResource Success}"
-                                                   Foreground="White"
-                                                   BorderThickness="0"
                                                    Padding="12,6"
                                                    Margin="0,0,10,0"
-                                                   Cursor="Hand"
-                                                   Click="AcceptButton_Click">
-                                                <Button.Style>
-                                                    <Style TargetType="Button">
-                                                        <Setter Property="Template">
-                                                            <Setter.Value>
-                                                                <ControlTemplate TargetType="Button">
-                                                                    <Border Background="{TemplateBinding Background}"
-                                                                           CornerRadius="6"
-                                                                           Padding="{TemplateBinding Padding}">
-                                                                        <ContentPresenter/>
-                                                                    </Border>
-                                                                </ControlTemplate>
-                                                            </Setter.Value>
-                                                        </Setter>
-                                                        <Style.Triggers>
-                                                            <Trigger Property="IsMouseOver" Value="True">
-                                                                <Setter Property="Background" Value="#5BC0BE"/>
-                                                            </Trigger>
-                                                        </Style.Triggers>
-                                                    </Style>
-                                                </Button.Style>
-                                            </Button>
+                                                   Click="AcceptButton_Click"/>
 
                                             <Button Content="✗ Reject"
                                                    Tag="{Binding Id}"
+                                                   Style="{StaticResource DangerButtonStyle}"
                                                    FontSize="12"
-                                                   Background="{StaticResource Danger}"
-                                                   Foreground="White"
-                                                   BorderThickness="0"
                                                    Padding="12,6"
-                                                   Cursor="Hand"
-                                                   Click="RejectButton_Click">
-                                                <Button.Style>
-                                                    <Style TargetType="Button">
-                                                        <Setter Property="Template">
-                                                            <Setter.Value>
-                                                                <ControlTemplate TargetType="Button">
-                                                                    <Border Background="{TemplateBinding Background}"
-                                                                           CornerRadius="6"
-                                                                           Padding="{TemplateBinding Padding}">
-                                                                        <ContentPresenter/>
-                                                                    </Border>
-                                                                </ControlTemplate>
-                                                            </Setter.Value>
-                                                        </Setter>
-                                                        <Style.Triggers>
-                                                            <Trigger Property="IsMouseOver" Value="True">
-                                                                <Setter Property="Background" Value="#FF5A5F"/>
-                                                            </Trigger>
-                                                        </Style.Triggers>
-                                                    </Style>
-                                                </Button.Style>
-                                            </Button>
+                                                   Click="RejectButton_Click"/>
                                         </StackPanel>
                                     </Grid>
                                 </Border>

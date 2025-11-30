@@ -51,7 +51,8 @@
                 <TextBlock Text="Email"
                            Foreground="{StaticResource Primary}"
                            FontSize="20"
-                           Margin="0,0,0,8"/>
+                           Margin="0,0,0,8"
+                           Focusable="True"/>
                 <TextBox Name="UsernameTextBox"
                          FontSize="20"
                          Background="{StaticResource Surface}"
@@ -86,7 +87,85 @@
                         BorderThickness="2"
                         HorizontalAlignment="Stretch"
                         Margin="0,0,0,18"
-                        Click="LoginButton_Click"/>
+                        Click="LoginButton_Click"
+                        Cursor="Hand">
+                    <Button.Style>
+                        <Style TargetType="Button">
+                            <Setter Property="Background" Value="{StaticResource Accent}"/>
+                            <Setter Property="Foreground" Value="{StaticResource Surface}"/>
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border Background="{TemplateBinding Background}"
+                                                BorderBrush="{TemplateBinding BorderBrush}"
+                                                BorderThickness="{TemplateBinding BorderThickness}"
+                                                CornerRadius="8"
+                                                RenderTransformOrigin="0.5,0.5">
+                                            <Border.RenderTransform>
+                                                <ScaleTransform x:Name="ScaleTransform" ScaleX="1" ScaleY="1"/>
+                                            </Border.RenderTransform>
+                                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Trigger.EnterActions>
+                                                    <BeginStoryboard>
+                                                        <Storyboard>
+                                                            <ColorAnimation Storyboard.TargetProperty="(Button.Background).(SolidColorBrush.Color)"
+                                                                          To="#5A9FBF"
+                                                                          Duration="0:0:0.2"/>
+                                                            <DoubleAnimation Storyboard.TargetName="ScaleTransform"
+                                                                           Storyboard.TargetProperty="ScaleX"
+                                                                           To="1.02"
+                                                                           Duration="0:0:0.2"/>
+                                                            <DoubleAnimation Storyboard.TargetName="ScaleTransform"
+                                                                           Storyboard.TargetProperty="ScaleY"
+                                                                           To="1.02"
+                                                                           Duration="0:0:0.2"/>
+                                                        </Storyboard>
+                                                    </BeginStoryboard>
+                                                </Trigger.EnterActions>
+                                                <Trigger.ExitActions>
+                                                    <BeginStoryboard>
+                                                        <Storyboard>
+                                                            <ColorAnimation Storyboard.TargetProperty="(Button.Background).(SolidColorBrush.Color)"
+                                                                          To="#4281A4"
+                                                                          Duration="0:0:0.2"/>
+                                                            <DoubleAnimation Storyboard.TargetName="ScaleTransform"
+                                                                           Storyboard.TargetProperty="ScaleX"
+                                                                           To="1"
+                                                                           Duration="0:0:0.2"/>
+                                                            <DoubleAnimation Storyboard.TargetName="ScaleTransform"
+                                                                           Storyboard.TargetProperty="ScaleY"
+                                                                           To="1"
+                                                                           Duration="0:0:0.2"/>
+                                                        </Storyboard>
+                                                    </BeginStoryboard>
+                                                </Trigger.ExitActions>
+                                            </Trigger>
+                                            <Trigger Property="IsPressed" Value="True">
+                                                <Trigger.EnterActions>
+                                                    <BeginStoryboard>
+                                                        <Storyboard>
+                                                            <DoubleAnimation Storyboard.TargetName="ScaleTransform"
+                                                                           Storyboard.TargetProperty="ScaleX"
+                                                                           To="0.98"
+                                                                           Duration="0:0:0.1"/>
+                                                            <DoubleAnimation Storyboard.TargetName="ScaleTransform"
+                                                                           Storyboard.TargetProperty="ScaleY"
+                                                                           To="0.98"
+                                                                           Duration="0:0:0.1"/>
+                                                        </Storyboard>
+                                                    </BeginStoryboard>
+                                                </Trigger.EnterActions>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </Button.Style>
+                </Button>
 
                 <!-- Signup button -->
                 <Button Content="Create an Account"
@@ -99,7 +178,92 @@
                         BorderThickness="2"
                         Padding="14"
                         Height="55"
-                        HorizontalAlignment="Stretch" Click="SignUpButton_Click"/>
+                        HorizontalAlignment="Stretch"
+                        Click="SignUpButton_Click"
+                        Cursor="Hand">
+                    <Button.Style>
+                        <Style TargetType="Button">
+                            <Setter Property="Background" Value="Transparent"/>
+                            <Setter Property="Foreground" Value="#2B2D42"/>
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border Background="{TemplateBinding Background}"
+                                                BorderBrush="{TemplateBinding BorderBrush}"
+                                                BorderThickness="{TemplateBinding BorderThickness}"
+                                                CornerRadius="8"
+                                                RenderTransformOrigin="0.5,0.5">
+                                            <Border.RenderTransform>
+                                                <ScaleTransform x:Name="ScaleTransform" ScaleX="1" ScaleY="1"/>
+                                            </Border.RenderTransform>
+                                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Trigger.EnterActions>
+                                                    <BeginStoryboard>
+                                                        <Storyboard>
+                                                            <ColorAnimation Storyboard.TargetProperty="(Button.Background).(SolidColorBrush.Color)"
+                                                                          To="#E8F4F8"
+                                                                          Duration="0:0:0.2"/>
+                                                            <ColorAnimation Storyboard.TargetProperty="(Button.Foreground).(SolidColorBrush.Color)"
+                                                                          To="#4281A4"
+                                                                          Duration="0:0:0.2"/>
+                                                            <DoubleAnimation Storyboard.TargetName="ScaleTransform"
+                                                                           Storyboard.TargetProperty="ScaleX"
+                                                                           To="1.02"
+                                                                           Duration="0:0:0.2"/>
+                                                            <DoubleAnimation Storyboard.TargetName="ScaleTransform"
+                                                                           Storyboard.TargetProperty="ScaleY"
+                                                                           To="1.02"
+                                                                           Duration="0:0:0.2"/>
+                                                        </Storyboard>
+                                                    </BeginStoryboard>
+                                                </Trigger.EnterActions>
+                                                <Trigger.ExitActions>
+                                                    <BeginStoryboard>
+                                                        <Storyboard>
+                                                            <ColorAnimation Storyboard.TargetProperty="(Button.Background).(SolidColorBrush.Color)"
+                                                                          To="Transparent"
+                                                                          Duration="0:0:0.2"/>
+                                                            <ColorAnimation Storyboard.TargetProperty="(Button.Foreground).(SolidColorBrush.Color)"
+                                                                          To="#2B2D42"
+                                                                          Duration="0:0:0.2"/>
+                                                            <DoubleAnimation Storyboard.TargetName="ScaleTransform"
+                                                                           Storyboard.TargetProperty="ScaleX"
+                                                                           To="1"
+                                                                           Duration="0:0:0.2"/>
+                                                            <DoubleAnimation Storyboard.TargetName="ScaleTransform"
+                                                                           Storyboard.TargetProperty="ScaleY"
+                                                                           To="1"
+                                                                           Duration="0:0:0.2"/>
+                                                        </Storyboard>
+                                                    </BeginStoryboard>
+                                                </Trigger.ExitActions>
+                                            </Trigger>
+                                            <Trigger Property="IsPressed" Value="True">
+                                                <Trigger.EnterActions>
+                                                    <BeginStoryboard>
+                                                        <Storyboard>
+                                                            <DoubleAnimation Storyboard.TargetName="ScaleTransform"
+                                                                           Storyboard.TargetProperty="ScaleX"
+                                                                           To="0.98"
+                                                                           Duration="0:0:0.1"/>
+                                                            <DoubleAnimation Storyboard.TargetName="ScaleTransform"
+                                                                           Storyboard.TargetProperty="ScaleY"
+                                                                           To="0.98"
+                                                                           Duration="0:0:0.1"/>
+                                                        </Storyboard>
+                                                    </BeginStoryboard>
+                                                </Trigger.EnterActions>
+                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </Button.Style>
+                </Button>
             </StackPanel>
         </Border>
 
