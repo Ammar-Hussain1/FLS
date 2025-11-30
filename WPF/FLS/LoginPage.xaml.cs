@@ -6,11 +6,8 @@ using System.Threading.Tasks;
 using FLS;
 using FLS.DL;
 using FLS.Models;
-<<<<<<< HEAD
 using FLS.Services;
-=======
 using FLS.Helpers;
->>>>>>> a718263d079a99b3505ccb193fad866365486061
 
 namespace WpfLoginApp
 {
