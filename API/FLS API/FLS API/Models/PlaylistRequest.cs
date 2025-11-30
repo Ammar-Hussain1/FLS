@@ -23,7 +23,7 @@ namespace FLS_API.DL.Models
         public string Url { get; set; } = string.Empty;
         
         [Column("course_id")]
-        public int CourseId { get; set; }
+        public string CourseId { get; set; } = string.Empty;
         
         [Column("user_id")]
         public Guid UserId { get; set; }

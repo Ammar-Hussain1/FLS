@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace FLS_API.DTOs
 {
     public class CourseDTO
@@ -22,6 +24,16 @@ namespace FLS_API.DTOs
         public int TotalPages { get; set; }
         public bool HasPreviousPage { get; set; }
         public bool HasNextPage { get; set; }
+    }
+
+    /// <summary>
+    /// Request DTO for adding a course to a user's saved courses (usercourses table).
+    /// </summary>
+    public class AddUserCourseRequestDTO
+    {
+        public string UserId { get; set; } = string.Empty;
+        public string CourseId { get; set; } = string.Empty;
+        public string? SectionName { get; set; }
     }
 }
 

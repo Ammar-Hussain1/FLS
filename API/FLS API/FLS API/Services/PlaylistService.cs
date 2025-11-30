@@ -1,4 +1,5 @@
 using FLS_API.DL.Models;
+using FLS_API.Models;
 
 namespace FLS_API.BL
 {
@@ -91,43 +92,55 @@ namespace FLS_API.BL
 
         public async Task<List<CommunityPlaylist>> GetPlaylistsForUserCoursesAsync(Guid userId)
         {
-            // Get user's enrolled course IDs
-            var userCoursesResponse = await _supabase.Client.From<UserCourse>()
-                .Where(uc => uc.UserId == userId)
-                .Get();
-            
-            var enrolledCourseIds = userCoursesResponse.Models.Select(uc => uc.CourseId).ToList();
-
-            if (!enrolledCourseIds.Any())
-            {
-                return new List<CommunityPlaylist>();
-            }
-
-            // Get community playlists for those courses
+            // For now, ignore userId and return all approved community playlists,
+            // grouped client-side by course. The WPF app already restricts the
+            // course list to the user's saved/enrolled courses.
             var playlistsResponse = await _supabase.Client.From<CommunityPlaylist>()
                 .Order(cp => cp.Likes, Supabase.Postgrest.Constants.Ordering.Descending)
                 .Get();
-            
-            // Filter by enrolled course IDs (Supabase client doesn't support IN clause directly)
-            var filteredPlaylists = playlistsResponse.Models
-                .Where(p => enrolledCourseIds.Contains(p.CourseId))
-                .ToList();
 
-            return filteredPlaylists;
+            return playlistsResponse.Models;
         }
 
-        public async Task<CommunityPlaylist> LikePlaylistAsync(Guid playlistId)
+        public async Task<CommunityPlaylist> LikePlaylistAsync(Guid playlistId, Guid userId)
         {
+            // Ensure playlist exists
             var playlistResponse = await _supabase.Client.From<CommunityPlaylist>()
                 .Where(p => p.Id == playlistId)
                 .Single();
-            
+
             var playlist = playlistResponse;
             if (playlist == null)
             {
                 throw new Exception("Playlist not found");
             }
 
+            // Prevent duplicate likes by the same user
+            var userIdString = userId.ToString();
+            var playlistIdString = playlistId.ToString();
+
+            var existingLikeResponse = await _supabase.Client.From<PlaylistLike>()
+                .Where(l => l.PlaylistId == playlistIdString && l.UserId == userIdString)
+                .Get();
+
+            if (existingLikeResponse.Models.Any())
+            {
+                // Already liked by this user – signal to caller
+                throw new InvalidOperationException("Playlist already liked by this user.");
+            }
+
+            // Insert like row
+            var like = new PlaylistLike
+            {
+                Id = Guid.NewGuid().ToString(),
+                PlaylistId = playlistIdString,
+                UserId = userIdString,
+                LikedAt = DateTime.UtcNow
+            };
+
+            await _supabase.Client.From<PlaylistLike>().Insert(like);
+
+            // Increment aggregate like counter on playlist
             playlist.Likes++;
             await _supabase.Client.From<CommunityPlaylist>().Update(playlist);
 

@@ -9,6 +9,6 @@ namespace FLS_API.BL
         Task<PlaylistRequest> ApproveRequestAsync(Guid requestId, Guid adminId);
         Task<PlaylistRequest> RejectRequestAsync(Guid requestId, Guid adminId, string reason);
         Task<List<CommunityPlaylist>> GetPlaylistsForUserCoursesAsync(Guid userId);
-        Task<CommunityPlaylist> LikePlaylistAsync(Guid playlistId);
+        Task<CommunityPlaylist> LikePlaylistAsync(Guid playlistId, Guid userId);
     }
 }

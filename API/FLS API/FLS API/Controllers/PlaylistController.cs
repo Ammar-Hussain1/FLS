@@ -32,14 +32,39 @@ namespace FLS_API.Controllers
             };
 
             var result = await _playlistService.SubmitRequestAsync(request);
-            return Ok(result);
+
+            var responseDto = new PlaylistRequestDTO
+            {
+                Id = result.Id,
+                Name = result.Name,
+                PlaylistName = result.PlaylistName,
+                Url = result.Url,
+                CourseId = result.CourseId,
+                UserId = result.UserId,
+                Status = result.Status,
+                SubmittedDate = result.SubmittedDate
+            };
+
+            return Ok(responseDto);
         }
 
         [HttpGet("requests")]
         public async Task<IActionResult> GetAllRequests()
         {
             var requests = await _playlistService.GetAllRequestsAsync();
-            return Ok(requests);
+            var dtos = requests.Select(r => new PlaylistRequestDTO
+            {
+                Id = r.Id,
+                Name = r.Name,
+                PlaylistName = r.PlaylistName,
+                Url = r.Url,
+                CourseId = r.CourseId,
+                UserId = r.UserId,
+                Status = r.Status,
+                SubmittedDate = r.SubmittedDate
+            }).ToList();
+
+            return Ok(dtos);
         }
 
         [HttpPut("approve/{id}")]
@@ -47,8 +72,8 @@ namespace FLS_API.Controllers
         {
             try
             {
-                var result = await _playlistService.ApproveRequestAsync(id, dto.AdminId);
-                return Ok(result);
+                await _playlistService.ApproveRequestAsync(id, dto.AdminId);
+                return NoContent();
             }
             catch (Exception ex)
             {
@@ -61,8 +86,8 @@ namespace FLS_API.Controllers
         {
             try
             {
-                var result = await _playlistService.RejectRequestAsync(id, dto.AdminId, dto.Reason);
-                return Ok(result);
+                await _playlistService.RejectRequestAsync(id, dto.AdminId, dto.Reason);
+                return NoContent();
             }
             catch (Exception ex)
             {
@@ -77,16 +102,36 @@ namespace FLS_API.Controllers
                 return BadRequest("Valid user ID is required.");
 
             var playlists = await _playlistService.GetPlaylistsForUserCoursesAsync(userId);
-            return Ok(playlists);
+
+            var dtos = playlists.Select(p => new CommunityPlaylistDTO
+            {
+                Id = p.Id,
+                Name = p.Name,
+                Url = p.Url,
+                CourseId = p.CourseId,
+                Likes = p.Likes
+            }).ToList();
+
+            return Ok(dtos);
         }
 
         [HttpPost("like/{id}")]
-        public async Task<IActionResult> LikePlaylist(Guid id)
+        public async Task<IActionResult> LikePlaylist(Guid id, [FromQuery] Guid userId)
         {
             try
             {
-                var result = await _playlistService.LikePlaylistAsync(id);
-                return Ok(result);
+                if (userId == Guid.Empty)
+                {
+                    return BadRequest("Valid user ID is required.");
+                }
+
+                await _playlistService.LikePlaylistAsync(id, userId);
+                return NoContent();
+            }
+            catch (InvalidOperationException ex)
+            {
+                // User has already liked this playlist
+                return Conflict(new { message = ex.Message });
             }
             catch (Exception ex)
             {
