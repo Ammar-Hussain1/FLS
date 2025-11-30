@@ -29,7 +29,6 @@ namespace FLS
         {
             if (sender is Border border && border.Tag is UserCourse userCourse)
             {
-                // Don't trigger if clicking on the remove button
                 if (e.OriginalSource is Button)
                 {
                     return;
