@@ -56,16 +56,15 @@ namespace FLS
                     {
                         _courses.Add(new Course
                         {
-                            Id = courseDto.Id, // Use UUID string directly
+                            Id = courseDto.Id,
                             Name = courseDto.Name,
                             Code = courseDto.Code,
                             Description = courseDto.Description ?? string.Empty,
-                            Credits = 0, // API doesn't provide credits
+                            Credits = 0, 
                             CreatedDate = DateTime.Now 
                         });
                     }
                     
-                    // Update pagination metadata
                     if (response.Data.Pagination != null)
                     {
                         _totalPages = response.Data.Pagination.TotalPages;
@@ -130,16 +129,12 @@ namespace FLS
                     Description = CourseDescriptionTextBox.Text.Trim()
                 };
 
-                // Note: This would require a CreateCourse endpoint in the API
-                // For now, we'll just show a message that this feature needs API support
                 MessageBox.Show(
                     "Course creation via API is not yet implemented. Please use the API directly or add the CreateCourse endpoint.",
                     "Info",
                     MessageBoxButton.OK,
                     MessageBoxImage.Information);
                 
-                // TODO: Call API to create course when endpoint is available
-                // var response = await _apiClient.CreateCourseAsync(courseDto);
                 
                 AddCourseForm.Visibility = Visibility.Collapsed;
                 ClearForm();
