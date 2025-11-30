@@ -63,10 +63,6 @@
           FontSize="14"
           Padding="10,8"
           Margin="0,0,0,15"
-          IsEditable="True"
-          IsTextSearchEnabled="False"
-          StaysOpenOnEdit="True"
-          TextBoxBase.TextChanged="CourseComboBox_TextChanged"
           SelectionChanged="CourseComboBox_SelectionChanged">
                             <ComboBox.ItemTemplate>
                                 <DataTemplate>

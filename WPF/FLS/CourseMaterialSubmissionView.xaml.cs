@@ -105,6 +105,9 @@ namespace FLS
                     });
                 }
 
+                
+                var sortedCourses = _courses.OrderBy(c => c.Name).ToList();
+                _courses = new ObservableCollection<Course>(sortedCourses);
                 CourseComboBox.ItemsSource = _courses;
 
                 if (_courses.Count == 0)
@@ -397,35 +400,14 @@ namespace FLS
         public void SetCourses(ObservableCollection<Course> courses)
         {
             _courses.Clear();
-            foreach (var course in courses)
+            // Sort courses by name
+            var sortedCourses = courses.OrderBy(c => c.Name).ToList();
+            foreach (var course in sortedCourses)
             {
                 _courses.Add(course);
             }
             CourseComboBox.ItemsSource = _courses;
         }
-
-        private void CourseComboBox_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            if (CourseComboBox.IsEditable)
-            {
-                string searchText = CourseComboBox.Text.ToLower();
-
-                if (string.IsNullOrWhiteSpace(searchText))
-                {
-                    CourseComboBox.ItemsSource = _courses;
-                }
-                else
-                {
-                    var filteredCourses = _courses.Where(c =>
-                        c.Name.ToLower().Contains(searchText) ||
-                        c.Code.ToLower().Contains(searchText)
-                    ).ToList();
-
-                    CourseComboBox.ItemsSource = filteredCourses;
-                    CourseComboBox.IsDropDownOpen = true;
-                }
-            }
-        }
     }
-    }
+}
 

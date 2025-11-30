@@ -74,7 +74,7 @@ namespace FLS
 
         private void ClearFileSelection()
         {
-            _selectedFilePath = null;
+            _selectedFilePath =  null;
             SelectedFileText.Text = "No file selected";
             FileDetailsPanel.Visibility = Visibility.Collapsed;
             ClearButton.Visibility = Visibility.Collapsed;
